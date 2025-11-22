@@ -46,35 +46,36 @@ try:
 except ImportError as e:
     print(f"Warning: Could not load Merge node: {e}")
 
+try:
+    from .nodes.color.colorcorrect import DetonateColorCorrect
+    NODE_CLASS_MAPPINGS["DetonateColorCorrect"] = DetonateColorCorrect
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateColorCorrect"] = "ColorCorrect (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load ColorCorrect node: {e}")
+
+try:
+    from .nodes.color.grade import DetonateGrade
+    NODE_CLASS_MAPPINGS["DetonateGrade"] = DetonateGrade
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateGrade"] = "Grade (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Grade node: {e}")
+
+try:
+    from .nodes.matte.erode_dilate import DetonateErode, DetonateDilate
+    NODE_CLASS_MAPPINGS["DetonateErode"] = DetonateErode
+    NODE_CLASS_MAPPINGS["DetonateDilate"] = DetonateDilate
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateErode"] = "Erode (Detonate)"
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateDilate"] = "Dilate (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Erode/Dilate nodes: {e}")
+
+# Transform node - not yet implemented
 # try:
 #     from .nodes.transform.transform import DetonateTransform
 #     NODE_CLASS_MAPPINGS["DetonateTransform"] = DetonateTransform
 #     NODE_DISPLAY_NAME_MAPPINGS["DetonateTransform"] = "Transform (Detonate)"
-# except ImportError:
-#     pass
-
-# try:
-#     from .nodes.color.colorcorrect import DetonateColorCorrect
-#     NODE_CLASS_MAPPINGS["DetonateColorCorrect"] = DetonateColorCorrect
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateColorCorrect"] = "ColorCorrect (Detonate)"
-# except ImportError:
-#     pass
-
-# try:
-#     from .nodes.color.grade import DetonateGrade
-#     NODE_CLASS_MAPPINGS["DetonateGrade"] = DetonateGrade
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateGrade"] = "Grade (Detonate)"
-# except ImportError:
-#     pass
-
-# try:
-#     from .nodes.matte.erode_dilate import DetonateErode, DetonateDilate
-#     NODE_CLASS_MAPPINGS["DetonateErode"] = DetonateErode
-#     NODE_CLASS_MAPPINGS["DetonateDilate"] = DetonateDilate
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateErode"] = "Erode (Detonate)"
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateDilate"] = "Dilate (Detonate)"
-# except ImportError:
-#     pass
+# except ImportError as e:
+#     print(f"Warning: Could not load Transform node: {e}")
 
 
 # Export for ComfyUI
