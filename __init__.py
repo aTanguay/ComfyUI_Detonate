@@ -14,38 +14,37 @@ NODE_DISPLAY_NAME_MAPPINGS = {}
 
 
 # Import nodes as they are implemented
-# Uncomment these as nodes are added:
 
-# Priority 1 Nodes
-# try:
-#     from .nodes.channel.premultiply import DetonatePremultiply, DetonateUnpremultiply
-#     NODE_CLASS_MAPPINGS["DetonatePremultiply"] = DetonatePremultiply
-#     NODE_CLASS_MAPPINGS["DetonateUnpremultiply"] = DetonateUnpremultiply
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonatePremultiply"] = "Premultiply (Detonate)"
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateUnpremultiply"] = "Unpremultiply (Detonate)"
-# except ImportError:
-#     pass
+# Priority 1 Nodes - Implemented ✓
+try:
+    from .nodes.channel.premultiply import DetonatePremultiply, DetonateUnpremultiply
+    NODE_CLASS_MAPPINGS["DetonatePremultiply"] = DetonatePremultiply
+    NODE_CLASS_MAPPINGS["DetonateUnpremultiply"] = DetonateUnpremultiply
+    NODE_DISPLAY_NAME_MAPPINGS["DetonatePremultiply"] = "Premultiply (Detonate)"
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateUnpremultiply"] = "Unpremultiply (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Premult nodes: {e}")
 
-# try:
-#     from .nodes.channel.shuffle import DetonateShuffle
-#     NODE_CLASS_MAPPINGS["DetonateShuffle"] = DetonateShuffle
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateShuffle"] = "Shuffle (Detonate)"
-# except ImportError:
-#     pass
+try:
+    from .nodes.channel.shuffle import DetonateShuffle
+    NODE_CLASS_MAPPINGS["DetonateShuffle"] = DetonateShuffle
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateShuffle"] = "Shuffle (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Shuffle node: {e}")
 
-# try:
-#     from .nodes.filter.blur import DetonateBlur
-#     NODE_CLASS_MAPPINGS["DetonateBlur"] = DetonateBlur
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateBlur"] = "Blur (Detonate)"
-# except ImportError:
-#     pass
+try:
+    from .nodes.filter.blur import DetonateBlur
+    NODE_CLASS_MAPPINGS["DetonateBlur"] = DetonateBlur
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateBlur"] = "Blur (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Blur node: {e}")
 
-# try:
-#     from .nodes.compositing.merge import DetonateMerge
-#     NODE_CLASS_MAPPINGS["DetonateMerge"] = DetonateMerge
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateMerge"] = "Merge (Detonate)"
-# except ImportError:
-#     pass
+try:
+    from .nodes.compositing.merge import DetonateMerge
+    NODE_CLASS_MAPPINGS["DetonateMerge"] = DetonateMerge
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateMerge"] = "Merge (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Merge node: {e}")
 
 # try:
 #     from .nodes.transform.transform import DetonateTransform
