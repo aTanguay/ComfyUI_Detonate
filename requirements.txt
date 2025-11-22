@@ -1,0 +1,17 @@
+# Core dependencies - required for all functionality
+torch>=2.0.0
+numpy>=1.20.0
+pillow>=9.0.0
+
+# Optional dependencies - for advanced features
+# Uncomment if you need these features:
+# opencv-python>=4.5.0      # Advanced image processing (keying, advanced filters)
+# scikit-image>=0.19.0      # Scientific image processing
+# scipy>=1.7.0              # Scientific computing utilities
+
+# Development dependencies
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+# pytest>=7.0.0
+# pytest-cov>=3.0.0
+# black>=22.0.0
+# flake8>=4.0.0

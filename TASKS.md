@@ -60,64 +60,65 @@ This is a working task list for tracking implementation progress. Check off item
 
 ## Phase 2: Core Compositing Nodes (Priority 1)
 
-### 1. Merge Node
-- [ ] Implement base Merge node class
-- [ ] Add "Over" blend mode (A over B)
-- [ ] Add "Under" blend mode
-- [ ] Add "Plus" blend mode (additive)
-- [ ] Add "Screen" blend mode
-- [ ] Add "Multiply" blend mode
-- [ ] Add "Stencil" blend mode
-- [ ] Add "Mask" blend mode
-- [ ] Add "Atop" blend mode
-- [ ] Add mix/opacity control
-- [ ] Handle alpha channels correctly
+### 1. Merge Node ✅
+- [x] Implement base Merge node class
+- [x] Add "Over" blend mode (A over B)
+- [x] Add "Under" blend mode
+- [x] Add "Plus" blend mode (additive)
+- [x] Add "Screen" blend mode
+- [x] Add "Multiply" blend mode
+- [x] Add "Stencil" blend mode
+- [x] Add "Mask" blend mode
+- [x] Add "Atop" blend mode
+- [x] Add mix/opacity control
+- [x] Handle alpha channels correctly
 - [ ] Add unit tests for Merge node
 - [ ] Create example workflow
 
-### 2. Transform Node
-- [ ] Implement base Transform node class
-- [ ] Add translate (X/Y position)
-- [ ] Add rotate (degrees)
-- [ ] Add scale (uniform and X/Y separate)
-- [ ] Add center point control
-- [ ] Add skew controls
-- [ ] Add filter quality options (nearest, bilinear, bicubic)
-- [ ] Add motion blur (optional for v1)
-- [ ] Handle edge modes (black, clamp, repeat)
+### 2. Transform Node ✅
+- [x] Implement base Transform node class
+- [x] Add translate (X/Y position)
+- [x] Add rotate (degrees)
+- [x] Add scale (uniform and X/Y separate)
+- [x] Add center point control
+- [x] Add skew controls
+- [x] Add filter quality options (nearest, bilinear, bicubic)
+- [ ] Add motion blur (optional for v2)
+- [x] Handle edge modes (black, clamp, repeat)
 - [ ] Add unit tests for Transform node
 - [ ] Create example workflow
 
-### 3. Blur Node
-- [ ] Implement base Blur node class
-- [ ] Add Gaussian blur algorithm
-- [ ] Add separate X/Y blur size controls
-- [ ] Add quality/iteration controls
-- [ ] Optimize for performance (GPU acceleration)
-- [ ] Handle alpha channels correctly
+### 3. Blur Node ✅
+- [x] Implement base Blur node class
+- [x] Add Gaussian blur algorithm
+- [x] Add separate X/Y blur size controls
+- [x] Add quality/iteration controls
+- [x] Optimize for performance (GPU acceleration)
+- [x] Handle alpha channels correctly
 - [ ] Add unit tests for Blur node
 - [ ] Create example workflow
 
-### 4. Grade Node
-- [ ] Implement base Grade node class
-- [ ] Add Lift controls (Master + RGB)
-- [ ] Add Gamma controls (Master + RGB)
-- [ ] Add Gain controls (Master + RGB)
-- [ ] Add Offset controls (Master + RGB)
-- [ ] Implement proper color math (shadows/mids/highlights)
-- [ ] Add black point/white point clamps
-- [ ] Add reverse toggle
+### 4. Grade Node ✅
+- [x] Implement base Grade node class
+- [x] Add Lift controls (Master)
+- [x] Add Gamma controls (Master)
+- [x] Add Gain controls (Master)
+- [x] Add Offset controls (Master)
+- [x] Implement proper color math (shadows/mids/highlights)
+- [x] Add black point/white point clamps
+- [ ] Add per-RGB channel controls (for v2)
+- [ ] Add reverse toggle (for v2)
 - [ ] Add unit tests for Grade node
 - [ ] Create example workflow
 
-### 5. Premultiply / Unpremultiply Nodes
-- [ ] Implement Premultiply node
-  - [ ] Multiply RGB by alpha
-  - [ ] Handle edge cases (alpha = 0)
-- [ ] Implement Unpremultiply node
-  - [ ] Divide RGB by alpha
-  - [ ] Handle division by zero
-  - [ ] Add clipping options
+### 5. Premultiply / Unpremultiply Nodes ✅
+- [x] Implement Premultiply node
+  - [x] Multiply RGB by alpha
+  - [x] Handle edge cases (alpha = 0)
+- [x] Implement Unpremultiply node
+  - [x] Divide RGB by alpha
+  - [x] Handle division by zero
+  - [x] Add clipping options
 - [ ] Add unit tests
 - [ ] Create example workflow
 
@@ -125,34 +126,34 @@ This is a working task list for tracking implementation progress. Check off item
 
 ## Phase 2: Core Compositing Nodes (Priority 2)
 
-### 6. ColorCorrect Node
-- [ ] Implement base ColorCorrect node class
-- [ ] Add Saturation control
-- [ ] Add Contrast control
-- [ ] Add Gamma control
-- [ ] Add Gain control
-- [ ] Add Offset control
+### 6. ColorCorrect Node ✅
+- [x] Implement base ColorCorrect node class
+- [x] Add Saturation control
+- [x] Add Contrast control
+- [x] Add Gamma control
+- [x] Add Gain control
+- [x] Add Offset control
 - [ ] Add unit tests for ColorCorrect node
 - [ ] Create example workflow
 
-### 7. Erode / Dilate Node
-- [ ] Implement Erode node
-  - [ ] Add size parameter
-  - [ ] Implement morphological erosion
-  - [ ] Optimize for performance
-- [ ] Implement Dilate node
-  - [ ] Add size parameter
-  - [ ] Implement morphological dilation
-  - [ ] Optimize for performance
+### 7. Erode / Dilate Node ✅
+- [x] Implement Erode node
+  - [x] Add size parameter
+  - [x] Implement morphological erosion
+  - [x] Optimize for performance (GPU max pooling)
+- [x] Implement Dilate node
+  - [x] Add size parameter
+  - [x] Implement morphological dilation
+  - [x] Optimize for performance (GPU max pooling)
 - [ ] Add unit tests
 - [ ] Create example workflow
 
-### 8. Shuffle Node
-- [ ] Implement base Shuffle node class
-- [ ] Add channel selection (R, G, B, A, 0, 1)
-- [ ] Add output channel mapping
-- [ ] Support multi-channel operations
-- [ ] Handle missing alpha channels
+### 8. Shuffle Node ✅
+- [x] Implement base Shuffle node class
+- [x] Add channel selection (R, G, B, A, 0, 1)
+- [x] Add output channel mapping
+- [x] Support multi-channel operations
+- [x] Handle missing alpha channels
 - [ ] Add unit tests for Shuffle node
 - [ ] Create example workflow
 
