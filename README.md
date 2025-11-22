@@ -21,6 +21,44 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
 
+## 🎉 Version 0.5.0 - Quality-of-Life Upgrades!
+
+We've upgraded **5 core nodes** with professional enhancements that weren't in the original implementations:
+
+### Merge - 16 Blend Modes (was 8)
+**Added 8 Photoshop-style blends:**
+Overlay, Soft Light, Hard Light, Color Dodge, Color Burn, Divide, Difference, Exclusion
+
+Perfect for advanced compositing, glow effects, and color grading workflows.
+
+### Grade - Per-Channel RGB Controls
+**Added separate R/G/B lift/gamma/gain controls** (like Nuke's full Grade node)
+
+Now supports precise per-channel color correction for matching problematic footage. Master controls + per-channel adjustments work together.
+
+### ColorCorrect - Hue Shift
+**Added hue rotation control** (-180° to +180°)
+
+Essential for color matching between different camera sources or lighting conditions. Uses proper RGB→HSV→RGB conversion.
+
+### EdgeDetect - 4 Algorithms (was 1)
+**Added Laplacian, Prewitt, and Scharr** (in addition to Sobel)
+
+Different algorithms for different needs:
+- **Sobel**: Standard, balanced
+- **Laplacian**: Fine edges, more noise-sensitive
+- **Prewitt**: Simpler, faster
+- **Scharr**: Best rotation invariance
+
+### MatteControl - 4 Kernel Shapes (was 1)
+**Added Circular, Cross, and Diamond** (in addition to Square)
+
+Professional matte refinement with shape control:
+- **Square**: Traditional morphology
+- **Circular**: Natural, organic edges
+- **Cross**: Directional (H+V only)
+- **Diamond**: 45° diagonal emphasis
+
 ## Implemented Nodes
 
 ### ✅ Tier 1: The Basics (9 nodes) - COMPLETE!

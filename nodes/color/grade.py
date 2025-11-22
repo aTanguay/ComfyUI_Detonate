@@ -95,6 +95,70 @@ class DetonateGrade:
                     "step": 0.01,
                     "display": "slider",
                 }),
+                # Per-channel RGB controls (Detonate improvement!)
+                "lift_r": ("FLOAT", {
+                    "default": 0.0,
+                    "min": -0.5,
+                    "max": 0.5,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "lift_g": ("FLOAT", {
+                    "default": 0.0,
+                    "min": -0.5,
+                    "max": 0.5,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "lift_b": ("FLOAT", {
+                    "default": 0.0,
+                    "min": -0.5,
+                    "max": 0.5,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "gamma_r": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.1,
+                    "max": 4.0,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "gamma_g": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.1,
+                    "max": 4.0,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "gamma_b": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.1,
+                    "max": 4.0,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "gain_r": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 4.0,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "gain_g": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 4.0,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
+                "gain_b": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 4.0,
+                    "step": 0.01,
+                    "display": "slider",
+                }),
             },
         }
 
@@ -111,25 +175,41 @@ class DetonateGrade:
         gamma: float = 1.0,
         gain: float = 1.0,
         offset: float = 0.0,
-        multiply: float = 1.0
+        multiply: float = 1.0,
+        lift_r: float = 0.0,
+        lift_g: float = 0.0,
+        lift_b: float = 0.0,
+        gamma_r: float = 1.0,
+        gamma_g: float = 1.0,
+        gamma_b: float = 1.0,
+        gain_r: float = 1.0,
+        gain_g: float = 1.0,
+        gain_b: float = 1.0
     ) -> tuple:
         """
         Apply grade color correction to image.
 
-        Complete formula:
+        Complete formula (per channel):
         A = multiply * (gain-lift) / (whitepoint-blackpoint)
         B = offset + lift - A*blackpoint
         output = pow(A*input + B, 1/gamma)
+
+        Detonate improvement: Per-channel RGB controls added!
+        Master controls (lift, gamma, gain) apply to all channels first,
+        then per-channel adjustments are added on top.
 
         Args:
             image: Input tensor [B,H,W,C] (should be straight/unpremultiplied alpha)
             blackpoint: Input black level (source black)
             whitepoint: Input white level (source white)
-            lift: Output black level (affects shadows most)
-            gamma: Midtone adjustment (pow(x, 1/gamma))
-            gain: Output white level (affects highlights most)
+            lift: Master output black level (affects shadows most)
+            gamma: Master midtone adjustment (pow(x, 1/gamma))
+            gain: Master output white level (affects highlights most)
             offset: Simple addition to all values
             multiply: Overall multiplier
+            lift_r, lift_g, lift_b: Per-channel lift adjustments
+            gamma_r, gamma_g, gamma_b: Per-channel gamma adjustments
+            gain_r, gain_g, gain_b: Per-channel gain adjustments
 
         Returns:
             Tuple containing graded image [B,H,W,C]
@@ -150,12 +230,20 @@ class DetonateGrade:
         if abs(whitepoint - blackpoint) < 1e-7:
             whitepoint = blackpoint + 1e-7
 
-        # Apply Grade formula
+        # Combine master + per-channel values
+        lift_combined = torch.tensor([lift + lift_r, lift + lift_g, lift + lift_b],
+                                     dtype=rgb.dtype, device=rgb.device).view(1, 1, 1, 3)
+        gamma_combined = torch.tensor([gamma * gamma_r, gamma * gamma_g, gamma * gamma_b],
+                                      dtype=rgb.dtype, device=rgb.device).view(1, 1, 1, 3)
+        gain_combined = torch.tensor([gain * gain_r, gain * gain_g, gain * gain_b],
+                                     dtype=rgb.dtype, device=rgb.device).view(1, 1, 1, 3)
+
+        # Apply Grade formula per-channel
         # A = multiply * (gain - lift) / (whitepoint - blackpoint)
-        A = multiply * (gain - lift) / (whitepoint - blackpoint)
+        A = multiply * (gain_combined - lift_combined) / (whitepoint - blackpoint)
 
         # B = offset + lift - A * blackpoint
-        B = offset + lift - A * blackpoint
+        B = offset + lift_combined - A * blackpoint
 
         # result = pow(A * input + B, 1/gamma)
         # First apply linear transform: A*input + B
@@ -164,8 +252,8 @@ class DetonateGrade:
         # Ensure non-negative for pow operation
         result_rgb = torch.clamp(result_rgb, min=0.0)
 
-        # Apply gamma (clamp gamma to prevent issues)
-        gamma_safe = max(0.01, gamma)
+        # Apply gamma per-channel (clamp gamma to prevent issues)
+        gamma_safe = torch.clamp(gamma_combined, min=0.01)
         result_rgb = torch.pow(result_rgb + 1e-7, 1.0 / gamma_safe)
 
         # Reconstruct with alpha

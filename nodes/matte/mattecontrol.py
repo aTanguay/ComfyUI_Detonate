@@ -36,6 +36,9 @@ class DetonateMatteControl:
 
     CATEGORY = "detonate/matte"
 
+    # Detonate improvement: Multiple kernel shapes!
+    KERNEL_SHAPES = ["square", "circular", "cross", "diamond"]
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -49,6 +52,9 @@ class DetonateMatteControl:
                     "max": 100,
                     "step": 1,
                     "display": "slider",
+                }),
+                "kernel_shape": (cls.KERNEL_SHAPES, {
+                    "default": "square",
                 }),
                 "blur": ("FLOAT", {
                     "default": 0.0,
@@ -78,6 +84,7 @@ class DetonateMatteControl:
         self,
         image: torch.Tensor,
         size: int = 0,
+        kernel_shape: str = "square",
         blur: float = 0.0,
         gamma: float = 1.0,
         channels: str = "alpha"
@@ -86,7 +93,11 @@ class DetonateMatteControl:
         Refine matte with contract/expand, blur, and gamma.
 
         Process order (important!):
-        1. Contract/Expand (size parameter)
+        1. Contract/Expand (size parameter with Detonate improvement: 4 kernel shapes!)
+           - Square: Traditional morphological operations
+           - Circular: More natural, organic edges
+           - Cross: Directional (horizontal + vertical only)
+           - Diamond: 45-degree diagonal emphasis
         2. Blur (edge softening)
         3. Gamma (density adjustment)
 
@@ -96,6 +107,7 @@ class DetonateMatteControl:
                   < 0: Contract (erode, choke)
                   > 0: Expand (dilate, spread)
                   = 0: No change
+            kernel_shape: Shape of morphological kernel
             blur: Gaussian blur size in pixels
             gamma: Gamma adjustment for matte density
                    < 1.0: Darken/thin matte
@@ -118,7 +130,7 @@ class DetonateMatteControl:
             rgb = image_rgba[:, :, :, :3]
             alpha = image_rgba[:, :, :, 3:4]
 
-            alpha_processed = self._process_channels(alpha, size, blur, gamma)
+            alpha_processed = self._process_channels(alpha, size, kernel_shape, blur, gamma)
 
             result = torch.cat([rgb, alpha_processed], dim=3)
 
@@ -127,13 +139,13 @@ class DetonateMatteControl:
             rgb = image_rgba[:, :, :, :3]
             alpha = image_rgba[:, :, :, 3:4]
 
-            rgb_processed = self._process_channels(rgb, size, blur, gamma)
+            rgb_processed = self._process_channels(rgb, size, kernel_shape, blur, gamma)
 
             result = torch.cat([rgb_processed, alpha], dim=3)
 
         else:  # "rgba"
             # Process all channels
-            result = self._process_channels(image_rgba, size, blur, gamma)
+            result = self._process_channels(image_rgba, size, kernel_shape, blur, gamma)
 
         # Match output channels to input
         if C == 3:
@@ -145,6 +157,7 @@ class DetonateMatteControl:
         self,
         tensor: torch.Tensor,
         size: int,
+        kernel_shape: str,
         blur: float,
         gamma: float
     ) -> torch.Tensor:
@@ -154,6 +167,7 @@ class DetonateMatteControl:
         Args:
             tensor: Input tensor [B,H,W,C]
             size: Contract/expand size
+            kernel_shape: Morphological kernel shape
             blur: Blur size
             gamma: Gamma value
 
@@ -164,7 +178,7 @@ class DetonateMatteControl:
 
         # Step 1: Contract/Expand (morphological operation)
         if size != 0:
-            result = self._morphology_operation(result, abs(size), "erode" if size < 0 else "dilate")
+            result = self._morphology_operation(result, abs(size), "erode" if size < 0 else "dilate", kernel_shape)
 
         # Step 2: Blur
         if blur > 0.0:
@@ -180,52 +194,121 @@ class DetonateMatteControl:
         self,
         tensor: torch.Tensor,
         size: int,
-        operation: str
+        operation: str,
+        kernel_shape: str
     ) -> torch.Tensor:
         """
-        Apply morphological operation (erode or dilate).
+        Apply morphological operation (erode or dilate) with various kernel shapes.
 
-        Uses max pooling for efficient GPU operation.
+        Detonate improvement: Support for circular, cross, and diamond kernels!
 
         Args:
             tensor: Input tensor [B,H,W,C]
             size: Operation size
             operation: "erode" or "dilate"
+            kernel_shape: Shape of kernel ("square", "circular", "cross", "diamond")
 
         Returns:
             Processed tensor [B,H,W,C]
         """
         B, H, W, C = tensor.shape
 
-        # Convert to [B,C,H,W] for pooling
+        # Convert to [B,C,H,W] for processing
         tensor_nchw = tensor.permute(0, 3, 1, 2)
 
-        # Kernel size (must be odd)
-        kernel_size = 2 * size + 1
+        # Create kernel based on shape
+        kernel = self._create_kernel(size, kernel_shape)
+        kernel = kernel.to(tensor.device)
+
+        # Pad tensor
         padding = size
+        tensor_padded = F.pad(tensor_nchw, (padding, padding, padding, padding), mode='replicate')
+
+        # Apply morphological operation using unfold + kernel masking
+        # Unfold creates sliding windows
+        B_p, C_p, H_p, W_p = tensor_padded.shape
+        kernel_size = 2 * size + 1
+
+        # Unfold to get all neighborhoods
+        unfolded = F.unfold(tensor_padded, kernel_size=(kernel_size, kernel_size), stride=1)
+        # Shape: [B, C*kernel_size*kernel_size, H*W]
+
+        # Reshape to [B, C, kernel_size*kernel_size, H*W]
+        unfolded = unfolded.view(B, C, kernel_size * kernel_size, H * W)
+
+        # Apply kernel mask
+        kernel_flat = kernel.view(-1, 1)  # [kernel_size*kernel_size, 1]
+
+        # Only consider pixels where kernel is 1
+        kernel_mask = kernel_flat > 0.5  # Boolean mask
 
         if operation == "erode":
-            # Erosion: minimum in neighborhood
-            # Trick: -max_pool(-x) = min_pool(x)
-            result_nchw = -F.max_pool2d(
-                -tensor_nchw,
-                kernel_size=kernel_size,
-                stride=1,
-                padding=padding
-            )
+            # Erosion: minimum among masked pixels
+            # Set non-masked pixels to inf so they don't affect min
+            masked_values = unfolded.clone()
+            masked_values[:, :, ~kernel_mask.squeeze(), :] = float('inf')
+            result_flat, _ = torch.min(masked_values, dim=2)
         else:  # "dilate"
-            # Dilation: maximum in neighborhood
-            result_nchw = F.max_pool2d(
-                tensor_nchw,
-                kernel_size=kernel_size,
-                stride=1,
-                padding=padding
-            )
+            # Dilation: maximum among masked pixels
+            # Set non-masked pixels to -inf so they don't affect max
+            masked_values = unfolded.clone()
+            masked_values[:, :, ~kernel_mask.squeeze(), :] = float('-inf')
+            result_flat, _ = torch.max(masked_values, dim=2)
+
+        # Reshape back
+        result_nchw = result_flat.view(B, C, H, W)
 
         # Convert back to [B,H,W,C]
         result = result_nchw.permute(0, 2, 3, 1)
 
         return result
+
+    def _create_kernel(
+        self,
+        size: int,
+        shape: str
+    ) -> torch.Tensor:
+        """
+        Create morphological kernel with specified shape.
+
+        Args:
+            size: Kernel radius
+            shape: Kernel shape
+
+        Returns:
+            Binary kernel tensor [kernel_size, kernel_size]
+        """
+        kernel_size = 2 * size + 1
+        kernel = torch.zeros(kernel_size, kernel_size)
+
+        center = size
+
+        if shape == "square":
+            # All ones (traditional morphological kernel)
+            kernel.fill_(1.0)
+
+        elif shape == "circular":
+            # Circular kernel (Euclidean distance)
+            for i in range(kernel_size):
+                for j in range(kernel_size):
+                    dist = ((i - center) ** 2 + (j - center) ** 2) ** 0.5
+                    if dist <= size:
+                        kernel[i, j] = 1.0
+
+        elif shape == "cross":
+            # Cross shape (horizontal + vertical only)
+            kernel[center, :] = 1.0  # Horizontal line
+            kernel[:, center] = 1.0  # Vertical line
+
+        elif shape == "diamond":
+            # Diamond shape (Manhattan distance)
+            for i in range(kernel_size):
+                for j in range(kernel_size):
+                    dist = abs(i - center) + abs(j - center)
+                    if dist <= size:
+                        kernel[i, j] = 1.0
+
+        return kernel
 
     def _apply_blur(
         self,

@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
