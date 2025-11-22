@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -202,6 +202,64 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateNoise"] = "Noise (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load Noise node: {e}")
+
+
+# Tier 4 Nodes - Production Finishing ✓
+try:
+    from .nodes.transform.crop import DetonateCrop
+    NODE_CLASS_MAPPINGS["DetonateCrop"] = DetonateCrop
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateCrop"] = "Crop (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Crop node: {e}")
+
+try:
+    from .nodes.color.exposure import DetonateExposure
+    NODE_CLASS_MAPPINGS["DetonateExposure"] = DetonateExposure
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateExposure"] = "Exposure (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Exposure node: {e}")
+
+try:
+    from .nodes.filter.vignette import DetonateVignette
+    NODE_CLASS_MAPPINGS["DetonateVignette"] = DetonateVignette
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateVignette"] = "Vignette (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Vignette node: {e}")
+
+try:
+    from .nodes.filter.grain import DetonateGrain
+    NODE_CLASS_MAPPINGS["DetonateGrain"] = DetonateGrain
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateGrain"] = "Grain (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Grain node: {e}")
+
+try:
+    from .nodes.color.huesatval import DetonateHueSatVal
+    NODE_CLASS_MAPPINGS["DetonateHueSatVal"] = DetonateHueSatVal
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateHueSatVal"] = "HueSatVal (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load HueSatVal node: {e}")
+
+try:
+    from .nodes.filter.denoise import DetonateDenoise
+    NODE_CLASS_MAPPINGS["DetonateDenoise"] = DetonateDenoise
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateDenoise"] = "Denoise (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Denoise node: {e}")
+
+try:
+    from .nodes.color.lut import DetonateLUT
+    NODE_CLASS_MAPPINGS["DetonateLUT"] = DetonateLUT
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateLUT"] = "LUT (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load LUT node: {e}")
+
+try:
+    from .nodes.transform.cornerpin import DetonateCornerPin
+    NODE_CLASS_MAPPINGS["DetonateCornerPin"] = DetonateCornerPin
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateCornerPin"] = "CornerPin (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load CornerPin node: {e}")
 
 
 # Export for ComfyUI

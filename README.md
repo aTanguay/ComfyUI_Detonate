@@ -21,6 +21,21 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
 
+## 🎉 Version 0.6.0 - Tier 4: Production Finishing!
+
+**8 new professional nodes** for final polish and creative effects:
+
+1. **Crop** - Aspect ratio presets (16:9, 2.39:1, etc.) + soft edges (linear/smooth/gaussian falloff)
+2. **Exposure** - Photographic f-stops + per-channel exposure + highlight rolloff + response curves (linear/log/filmic)
+3. **Vignette** - Multiple shapes (circular/oval/rectangular) + falloff curves + color tinting
+4. **Grain** - 4 grain types (film/digital/organic/halftone) + luminance-dependent + per-channel intensity
+5. **HueSatVal** - Direct HSV manipulation + selective hue ranges (reds/yellows/etc.) + preserve luminance
+6. **Denoise** - 3 algorithms (bilateral/median/gaussian) + detail preservation + luma/chroma separation
+7. **LUT** - 1D/3D .cube file support + trilinear interpolation + LUT caching + strength control
+8. **CornerPin** - 4-point perspective transform + homography calculation (DLT/SVD) + multiple filter modes
+
+**Total node count: 34 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4)
+
 ## 🎉 Version 0.5.0 - Quality-of-Life Upgrades!
 
 We've upgraded **5 core nodes** with professional enhancements that weren't in the original implementations:
@@ -234,6 +249,66 @@ Production-essential tools for professional finishing and CG workflows.
 
 ---
 
+### ✅ Tier 4: Production Finishing (8 nodes) - COMPLETE! 🎉
+Final polish and creative finishing tools for professional output.
+
+#### Framing & Composition
+- **Crop** - Aspect ratio presets + soft edges
+  - **7 aspect ratio presets**: 16:9, 2.39:1, 2.35:1, 1.85:1, 4:3, 1:1, 9:16
+  - **3 feather modes**: Linear, Smooth (smoothstep), Gaussian
+  - **Center crop mode** for quick framing
+  - Perfect for format changes and creative framing
+
+#### Photographic Controls
+- **Exposure** ⭐ - Photographic f-stops exposure
+  - **Per-channel stops** (R/G/B) for creative color grading
+  - **Highlight rolloff** - Prevent blown highlights
+  - **3 response curves**: Linear, Logarithmic (HDR), Filmic (ACES-like)
+  - More intuitive than multiply/gain for photographers
+
+- **Vignette** - Lens vignetting effect
+  - **3 shapes**: Circular, Oval, Rectangular
+  - **4 falloff curves**: Linear, Quadratic, Cubic, Smooth
+  - **Color tinting** for stylistic edges
+  - **Inverse mode** - Lighten edges instead of darken
+
+#### Texture & Film Emulation
+- **Grain** ⭐ - Film grain and texture
+  - **4 grain types**: Film (Gaussian), Digital (uniform), Organic (multi-scale), Halftone (dot pattern)
+  - **Luminance-dependent** - Shadow/highlight bias controls
+  - **Per-channel intensity** (R/G/B)
+  - **Color vs monochrome** grain
+  - Essential for matching CG to live action
+
+#### Advanced Color Control
+- **HueSatVal** - Direct HSV manipulation
+  - **Selective hue ranges** - Target specific colors (reds, yellows, greens, cyans, blues, magentas)
+  - **Range softness** - Feathered transitions
+  - **Preserve luminance** mode
+  - Perfect for precise color adjustments
+
+- **LUT** ⭐⭐ - 1D/3D color lookup tables
+  - **Industry-standard .cube file support**
+  - **Trilinear interpolation** for 3D LUTs
+  - **LUT caching** for performance
+  - **Strength control** - Mix with original
+  - Apply film emulation and creative grades
+
+#### Noise Reduction & Warping
+- **Denoise** - Edge-preserving noise reduction
+  - **3 algorithms**: Bilateral (edge-preserving), Median (salt-and-pepper), Gaussian (simple)
+  - **Detail preservation** control
+  - **Luma/chroma separation** - Denoise brightness and color independently
+  - Perfect for cleaning noisy footage
+
+- **CornerPin** ⭐⭐ - 4-point perspective transform
+  - **Homography calculation** (DLT/SVD algorithm)
+  - **3 filter modes**: Bilinear, Bicubic, Nearest
+  - **Inverse transformation**
+  - Essential for screen replacements and match-moving
+
+---
+
 ## Installation
 
 1. Clone into your ComfyUI `custom_nodes` directory:
@@ -278,22 +353,19 @@ LoadImage → Shuffle (red → alpha) → Premultiply → Merge
 
 ## Coming Soon
 
-### 🎬 Tier 3: Keying Tools (Planned)
-Professional greenscreen and matte extraction.
+### 🎬 Future Tiers: Keying & Advanced Tools (Planned)
+Professional keying tools and advanced transforms for complex workflows.
 
+**Keying:**
 - **ChromaKeyer** - Green/blue screen keying with spill suppression
 - **LumaKeyer** - Luminance-based key generation
 - **DifferenceKeyer** - Clean plate differencing
 - **Despill** - Remove greenscreen spill from edges
 
-### ⚡ Tier 4: Advanced Tools (Planned)
-Power user tools for complex workflows.
-
-- **CornerPin** - 4-point perspective transforms
-- **Defocus** - Lens-style bokeh depth of field
-- **DirectionalBlur** - Motion blur effects
-- **HueCorrect** - Hue-based color curves
-- **GridWarp** - Manual image warping
+**Advanced Transforms:**
+- **GridWarp** - Manual image warping with grid control
+- **DirectionalBlur** - Motion blur effects with angle control
+- **LensDistort** - Lens distortion correction and simulation
 
 ## Technical Details
 
@@ -332,5 +404,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Tier 1, 2 & 3 COMPLETE + Cryptomatte ✅ (26 nodes total) - Professional VFX toolkit ready!
-**Version**: 0.4.0
+**Status**: Tier 1, 2, 3 & 4 COMPLETE + Cryptomatte ✅ (34 nodes total) - Production-ready VFX toolkit!
+**Version**: 0.6.0
