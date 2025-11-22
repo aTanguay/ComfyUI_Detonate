@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -271,6 +271,24 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateRotoBezierFromImage"] = "RotoBezier From Image (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load RotoBezier nodes: {e}")
+
+
+# Tier 6 Nodes - Professional Keying ✓
+try:
+    from .nodes.keying.chromakeyer import DetonateChromaKeyer
+    NODE_CLASS_MAPPINGS["DetonateChromaKeyer"] = DetonateChromaKeyer
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateChromaKeyer"] = "ChromaKeyer (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load ChromaKeyer node: {e}")
+
+try:
+    from .nodes.keying.lumakeyer import DetonateLumaKeyer, DetonateLumaKeyerSimple
+    NODE_CLASS_MAPPINGS["DetonateLumaKeyer"] = DetonateLumaKeyer
+    NODE_CLASS_MAPPINGS["DetonateLumaKeyerSimple"] = DetonateLumaKeyerSimple
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateLumaKeyer"] = "LumaKeyer (Detonate)"
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateLumaKeyerSimple"] = "LumaKeyer Simple (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load LumaKeyer nodes: {e}")
 
 
 # Export for ComfyUI
