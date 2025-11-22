@@ -2861,6 +2861,20 @@ Interactive Bezier spline drawing tool for rotoscoping and masking. Provides pro
 - Current spline: Green curve (during drawing)
 - Completed splines: White curves
 
+**Preset Shapes** (Phase 1.5!)
+- **Circle:** Perfect circle using 4 Bezier curves
+  - Magic constant κ ≈ 0.5522847498 for circle approximation
+  - Formula: κ = 4/3 × tan(π/8)
+  - Creates mathematically accurate circle with smooth curves
+- **Rectangle:** Sharp-cornered rectangle
+  - 4 points with no tangent handles (cusp corners)
+  - Centered at canvas center with configurable width/height
+- **Star:** 5-pointed star (configurable points)
+  - Alternating outer/inner radius points
+  - Evenly spaced around circle (angleStep = π/points)
+  - Starts at top (-π/2 offset)
+- **Quick workflow:** Click button → shape appears centered → edit as needed
+
 **Data Format (JSON):**
 ```json
 {
@@ -2876,11 +2890,21 @@ Interactive Bezier spline drawing tool for rotoscoping and masking. Provides pro
         }
       ],
       "closed": true,
-      "feather": 2.0
+      "feather": 2.0,
+      "operation": "add",
+      "invert": false
     }
   ]
 }
 ```
+
+**Phase 1.5 Additions:**
+- **operation:** Shape operation mode ("add", "subtract", "intersect")
+  - Controls how this spline combines with previous splines
+  - First spline always acts as "add" regardless of setting
+- **invert:** Per-spline invert flag (true/false)
+  - Inverts this individual spline before applying operation
+  - Different from global invert parameter
 
 #### Parameters
 
@@ -2892,44 +2916,79 @@ Interactive Bezier spline drawing tool for rotoscoping and masking. Provides pro
 **Optional:**
 - **feather:** Feather radius in pixels (0.0-100.0, default: 2.0)
   - Distance field-based soft edge
-  - Smoothstep falloff for natural edge
   - Applied after rasterization
+- **feather_type:** Falloff curve type (Phase 1.5!)
+  - **Smooth** (default): Smoothstep S-curve for natural edge
+  - **Linear**: Linear interpolation for hard falloff
+  - **Gaussian**: Gaussian distribution for soft, blur-like edge
+  - Artistic control over feather appearance
 - **antialias_samples:** Supersampling factor (1-16, default: 4)
   - 1 = No anti-aliasing
   - 4 = High quality (recommended)
   - 16 = Maximum quality (slow)
   - Uses INTER_AREA downsampling
-- **invert:** Invert mask (False/True, default: False)
-  - Inside becomes outside and vice versa
+- **invert:** Global invert mask (False/True, default: False)
+  - Inverts final result after all shape operations
+  - Per-spline invert available via spline.invert field
 
-#### Rasterization Pipeline
+#### Rasterization Pipeline (Phase 1.5 Updated)
 
 **Step 1: Parse JSON**
 - Load spline data from widget
-- Extract points, handles, closed state
+- Extract points, handles, closed state, operation, invert
 
-**Step 2: Discretize Bezier Curves**
+**Step 2: Initialize Result Mask**
+- Create empty mask at supersampled resolution
+- Will accumulate splines using shape operations
+
+**Step 3: Process Each Spline**
+For each spline in order:
+
+**3a. Discretize Bezier Curves**
 - Use de Casteljau algorithm to sample curves
 - Convert each segment to point array
 - Scale to supersampled resolution (width × aa_factor)
 
-**Step 3: Polygon Rasterization**
+**3b. Rasterize Individual Spline**
 - For closed splines: PIL ImageDraw.polygon() with fill
 - For open splines: PIL ImageDraw.line() with stroke
-- Binary mask: 0 (outside) or 255 (inside)
+- Convert to float [0, 1] range
+
+**3c. Apply Per-Spline Invert**
+- If spline.invert == true: mask = 1.0 - mask
+
+**3d. Apply Shape Operation** (Phase 1.5!)
+- **Add**: result = max(result, spline_mask)
+- **Subtract**: result = max(result - spline_mask, 0)
+- **Intersect**: result = result × spline_mask
+- First spline always treated as Add
 
 **Step 4: Anti-Aliasing**
-- Render at higher resolution (aa_factor × native)
 - Downsample using cv2.INTER_AREA (area averaging)
 - Produces smooth edges with sub-pixel accuracy
 
-**Step 5: Feathering**
+**Step 5: Feathering** (Phase 1.5 Enhanced)
 - Compute distance transform (inside and outside)
 - Create signed distance field (SDF)
-- Apply smoothstep falloff over feather range:
+- Apply selected falloff curve:
+
+  **Linear:**
   ```
   t = clamp((sdf + feather) / (2 * feather), 0, 1)
-  result = t² (3 - 2t)  // Smoothstep
+  result = t
+  ```
+
+  **Smooth (Smoothstep):**
+  ```
+  t = clamp((sdf + feather) / (2 * feather), 0, 1)
+  result = t² (3 - 2t)
+  ```
+
+  **Gaussian:**
+  ```
+  t = clamp((sdf + feather) / (2 * feather), 0, 1)
+  x = (t - 0.5) × 6.0
+  result = exp(-0.5 × (x/σ)²)
   ```
 
 **Step 6: Invert (Optional)**
@@ -3146,6 +3205,6 @@ Interactive Bezier spline drawing tool for rotoscoping and masking. Provides pro
 
 ---
 
-**Document Version:** 1.5
+**Document Version:** 1.6
 **Last Updated:** 2025-01-22
-**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Complete | Tier 4 Complete | Tier 5 Phase 1 Complete
+**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Complete | Tier 4 Complete | Tier 5 Phase 1.5 Complete

@@ -37,6 +37,8 @@ class BezierSpline {
         this.points = [];
         this.closed = false;
         this.feather = 2.0;  // Default feather in pixels
+        this.operation = 'add';  // Shape operation: 'add', 'subtract', 'intersect'
+        this.invert = false;  // Invert this spline's mask
     }
 
     addPoint(x, y) {
@@ -48,6 +50,8 @@ class BezierSpline {
         spline.points = this.points.map(p => p.clone());
         spline.closed = this.closed;
         spline.feather = this.feather;
+        spline.operation = this.operation;
+        spline.invert = this.invert;
         return spline;
     }
 
@@ -61,7 +65,9 @@ class BezierSpline {
                 smooth: p.smooth
             })),
             closed: this.closed,
-            feather: this.feather
+            feather: this.feather,
+            operation: this.operation,
+            invert: this.invert
         };
     }
 
@@ -69,6 +75,8 @@ class BezierSpline {
         const spline = new BezierSpline();
         spline.closed = data.closed || false;
         spline.feather = data.feather || 2.0;
+        spline.operation = data.operation || 'add';
+        spline.invert = data.invert || false;
         spline.points = (data.points || []).map(p => {
             const point = new BezierPoint(p.x, p.y);
             point.handleIn = p.handleIn || { x: 0, y: 0 };
@@ -76,6 +84,81 @@ class BezierSpline {
             point.smooth = p.smooth !== undefined ? p.smooth : true;
             return point;
         });
+        return spline;
+    }
+
+    /**
+     * Generate a circle spline (Phase 1.5 preset)
+     */
+    static createCircle(cx, cy, radius) {
+        const spline = new BezierSpline();
+        spline.closed = true;
+
+        // Circle approximated with 4 Bezier curves
+        // Magic constant for circle approximation: 0.5522847498 ≈ 4/3 * tan(π/8)
+        const kappa = 0.5522847498;
+        const offset = radius * kappa;
+
+        // Top point
+        const p1 = new BezierPoint(cx, cy - radius);
+        p1.handleIn = { x: -offset, y: 0 };
+        p1.handleOut = { x: offset, y: 0 };
+
+        // Right point
+        const p2 = new BezierPoint(cx + radius, cy);
+        p2.handleIn = { x: 0, y: -offset };
+        p2.handleOut = { x: 0, y: offset };
+
+        // Bottom point
+        const p3 = new BezierPoint(cx, cy + radius);
+        p3.handleIn = { x: offset, y: 0 };
+        p3.handleOut = { x: -offset, y: 0 };
+
+        // Left point
+        const p4 = new BezierPoint(cx - radius, cy);
+        p4.handleIn = { x: 0, y: offset };
+        p4.handleOut = { x: 0, y: -offset };
+
+        spline.points = [p1, p2, p3, p4];
+        return spline;
+    }
+
+    /**
+     * Generate a rectangle spline (Phase 1.5 preset)
+     */
+    static createRectangle(cx, cy, width, height) {
+        const spline = new BezierSpline();
+        spline.closed = true;
+
+        const hw = width / 2;
+        const hh = height / 2;
+
+        // Four corners (no handles for sharp corners)
+        spline.addPoint(cx - hw, cy - hh);  // Top-left
+        spline.addPoint(cx + hw, cy - hh);  // Top-right
+        spline.addPoint(cx + hw, cy + hh);  // Bottom-right
+        spline.addPoint(cx - hw, cy + hh);  // Bottom-left
+
+        return spline;
+    }
+
+    /**
+     * Generate a star spline (Phase 1.5 preset)
+     */
+    static createStar(cx, cy, outerRadius, innerRadius, points = 5) {
+        const spline = new BezierSpline();
+        spline.closed = true;
+
+        const angleStep = Math.PI / points;
+
+        for (let i = 0; i < points * 2; i++) {
+            const angle = i * angleStep - Math.PI / 2;  // Start at top
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const x = cx + radius * Math.cos(angle);
+            const y = cy + radius * Math.sin(angle);
+            spline.addPoint(x, y);
+        }
+
         return spline;
     }
 }
@@ -437,6 +520,39 @@ app.registerExtension({
                     this.addWidget("button", "Clear All", null, () => {
                         bezierWidget.splines = [];
                         bezierWidget.currentSpline = null;
+                        bezierWidget.updateValue();
+                        bezierWidget.render();
+                    });
+
+                    // Phase 1.5: Preset shape generators
+                    this.addWidget("button", "Add Circle", null, () => {
+                        const cx = bezierWidget.canvas.width / 2;
+                        const cy = bezierWidget.canvas.height / 2;
+                        const radius = Math.min(cx, cy) * 0.5;
+                        const circle = BezierSpline.createCircle(cx, cy, radius);
+                        bezierWidget.splines.push(circle);
+                        bezierWidget.updateValue();
+                        bezierWidget.render();
+                    });
+
+                    this.addWidget("button", "Add Rectangle", null, () => {
+                        const cx = bezierWidget.canvas.width / 2;
+                        const cy = bezierWidget.canvas.height / 2;
+                        const width = bezierWidget.canvas.width * 0.6;
+                        const height = bezierWidget.canvas.height * 0.5;
+                        const rect = BezierSpline.createRectangle(cx, cy, width, height);
+                        bezierWidget.splines.push(rect);
+                        bezierWidget.updateValue();
+                        bezierWidget.render();
+                    });
+
+                    this.addWidget("button", "Add Star", null, () => {
+                        const cx = bezierWidget.canvas.width / 2;
+                        const cy = bezierWidget.canvas.height / 2;
+                        const outerRadius = Math.min(cx, cy) * 0.6;
+                        const innerRadius = outerRadius * 0.4;
+                        const star = BezierSpline.createStar(cx, cy, outerRadius, innerRadius, 5);
+                        bezierWidget.splines.push(star);
                         bezierWidget.updateValue();
                         bezierWidget.render();
                     });

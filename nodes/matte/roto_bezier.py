@@ -81,6 +81,11 @@ class DetonateRotoBezier:
                     "step": 0.1,
                     "display": "slider",
                 }),
+                # Feather falloff type (Phase 1.5!)
+                "feather_type": (["Smooth", "Linear", "Gaussian"], {
+                    "default": "Smooth",
+                    "tooltip": "Feather falloff curve: Smooth (smoothstep), Linear, Gaussian",
+                }),
                 # Anti-aliasing quality (Detonate improvement!)
                 "antialias_samples": ("INT", {
                     "default": 4,
@@ -89,9 +94,10 @@ class DetonateRotoBezier:
                     "step": 1,
                     "tooltip": "Supersampling factor for anti-aliasing (1=off, 4=high quality)",
                 }),
-                # Invert mask (Detonate improvement!)
+                # Global invert (Detonate improvement!)
                 "invert": ("BOOLEAN", {
                     "default": False,
+                    "tooltip": "Invert final mask (after all operations)",
                 }),
             },
         }
@@ -106,25 +112,27 @@ class DetonateRotoBezier:
         height: int,
         spline_data: str,
         feather: float = 2.0,
+        feather_type: str = "Smooth",
         antialias_samples: int = 4,
         invert: bool = False
     ) -> Tuple[torch.Tensor]:
         """
-        Rasterize Bezier splines to mask.
+        Rasterize Bezier splines to mask with shape operations.
 
-        Detonate improvements:
-        1. High-quality anti-aliasing via supersampling
-        2. Adjustable feathering with distance field
-        3. Multiple spline support
-        4. Invert option
+        Phase 1.5 features:
+        1. Shape operations (Add/Subtract/Intersect)
+        2. Per-spline invert
+        3. Falloff curves (Linear/Smooth/Gaussian)
+        4. High-quality anti-aliasing via supersampling
 
         Args:
             width: Mask width in pixels
             height: Mask height in pixels
             spline_data: JSON string with spline data from widget
             feather: Feather amount in pixels (soft edge)
+            feather_type: Falloff curve type (Smooth/Linear/Gaussian)
             antialias_samples: Supersampling factor (1=off, 4=high, 16=max)
-            invert: Invert mask (inside becomes outside)
+            invert: Invert final mask (after all operations)
 
         Returns:
             Tuple containing mask tensor [1, H, W]
@@ -146,13 +154,15 @@ class DetonateRotoBezier:
         aa_width = width * aa_factor
         aa_height = height * aa_factor
 
-        # Create high-res mask
-        mask_np = np.zeros((aa_height, aa_width), dtype=np.uint8)
+        # Initialize result mask (start with empty)
+        result_mask = np.zeros((aa_height, aa_width), dtype=np.float32)
 
-        # Rasterize each spline
-        for spline_data in splines:
+        # Process each spline with its operation
+        for spline_idx, spline_data in enumerate(splines):
             points = spline_data.get('points', [])
             closed = spline_data.get('closed', False)
+            operation = spline_data.get('operation', 'add')
+            spline_invert = spline_data.get('invert', False)
 
             if len(points) < 2:
                 continue
@@ -173,8 +183,9 @@ class DetonateRotoBezier:
             # Convert to integer coordinates for PIL
             polygon_points = [(int(p[0]), int(p[1])) for p in spline_points_scaled]
 
-            # Draw filled polygon
-            img = Image.fromarray(mask_np)
+            # Create individual spline mask
+            spline_mask = np.zeros((aa_height, aa_width), dtype=np.uint8)
+            img = Image.fromarray(spline_mask)
             draw = ImageDraw.Draw(img)
 
             if closed and len(polygon_points) >= 3:
@@ -185,46 +196,61 @@ class DetonateRotoBezier:
                 if len(polygon_points) >= 2:
                     draw.line(polygon_points, fill=255, width=aa_factor)
 
-            mask_np = np.array(img)
+            spline_mask = np.array(img).astype(np.float32) / 255.0
+
+            # Apply per-spline invert
+            if spline_invert:
+                spline_mask = 1.0 - spline_mask
+
+            # Apply shape operation
+            if spline_idx == 0 or operation == 'add':
+                # First spline or Add: union (max)
+                result_mask = np.maximum(result_mask, spline_mask)
+            elif operation == 'subtract':
+                # Subtract: difference
+                result_mask = np.maximum(result_mask - spline_mask, 0.0)
+            elif operation == 'intersect':
+                # Intersect: product (AND)
+                result_mask = result_mask * spline_mask
 
         # Downsample for anti-aliasing
         if aa_factor > 1:
-            mask_np = cv2.resize(
-                mask_np,
+            result_mask = cv2.resize(
+                result_mask,
                 (width, height),
                 interpolation=cv2.INTER_AREA  # Best for downsampling
             )
 
-        # Convert to float [0, 1]
-        mask_float = mask_np.astype(np.float32) / 255.0
+        # Already in float [0, 1] range
 
         # Apply feathering if requested
         if feather > 0.0:
-            mask_float = self._apply_feather(mask_float, feather)
+            result_mask = self._apply_feather(result_mask, feather, feather_type)
 
-        # Invert if requested
+        # Global invert if requested
         if invert:
-            mask_float = 1.0 - mask_float
+            result_mask = 1.0 - result_mask
 
         # Convert to torch tensor [1, H, W]
-        mask_tensor = torch.from_numpy(mask_float).unsqueeze(0)
+        mask_tensor = torch.from_numpy(result_mask).unsqueeze(0)
 
         return (mask_tensor,)
 
     def _apply_feather(
         self,
         mask: np.ndarray,
-        feather_radius: float
+        feather_radius: float,
+        feather_type: str = "Smooth"
     ) -> np.ndarray:
         """
         Apply feathering (soft edge) to mask using distance transform.
 
-        Detonate improvement: Distance field-based feathering for
-        high-quality soft edges.
+        Phase 1.5: Multiple falloff curve types for artistic control.
 
         Args:
             mask: Input mask [H, W] in range [0, 1]
             feather_radius: Feather radius in pixels
+            feather_type: Falloff curve type (Linear/Smooth/Gaussian)
 
         Returns:
             Feathered mask [H, W]
@@ -250,12 +276,28 @@ class DetonateRotoBezier:
         # Signed distance field
         sdf = dist_inside - dist_outside
 
-        # Apply smoothstep falloff
         # Map distance to [0, 1] over feather range
         t = np.clip((sdf + feather_radius) / (2 * feather_radius), 0.0, 1.0)
 
-        # Smoothstep for smooth falloff
-        feathered = t * t * (3.0 - 2.0 * t)
+        # Apply selected falloff curve
+        if feather_type == "Linear":
+            # Linear falloff: simple linear interpolation
+            feathered = t
+        elif feather_type == "Smooth":
+            # Smoothstep: S-curve for natural falloff (default)
+            feathered = t * t * (3.0 - 2.0 * t)
+        elif feather_type == "Gaussian":
+            # Gaussian falloff: soft, natural blur-like
+            # Map t to gaussian range [-3, 3] for smooth falloff
+            sigma = 1.0
+            # Convert distance to gaussian space
+            x = (t - 0.5) * 6.0  # Map [0,1] to [-3, 3]
+            feathered = np.exp(-0.5 * (x / sigma) ** 2)
+            # Normalize to [0, 1]
+            feathered = np.clip(feathered, 0.0, 1.0)
+        else:
+            # Default to smooth if unknown type
+            feathered = t * t * (3.0 - 2.0 * t)
 
         return feathered.astype(np.float32)
 
@@ -288,6 +330,9 @@ class DetonateRotoBezierFromImage:
                     "step": 0.1,
                     "display": "slider",
                 }),
+                "feather_type": (["Smooth", "Linear", "Gaussian"], {
+                    "default": "Smooth",
+                }),
                 "antialias_samples": ("INT", {
                     "default": 4,
                     "min": 1,
@@ -309,6 +354,7 @@ class DetonateRotoBezierFromImage:
         image: torch.Tensor,
         spline_data: str,
         feather: float = 2.0,
+        feather_type: str = "Smooth",
         antialias_samples: int = 4,
         invert: bool = False
     ) -> Tuple[torch.Tensor]:
@@ -319,6 +365,7 @@ class DetonateRotoBezierFromImage:
             image: Input image (used for dimensions only) [B, H, W, C]
             spline_data: JSON spline data
             feather: Feather amount
+            feather_type: Falloff curve type
             antialias_samples: Anti-aliasing quality
             invert: Invert mask
 
@@ -334,6 +381,7 @@ class DetonateRotoBezierFromImage:
             height=H,
             spline_data=spline_data,
             feather=feather,
+            feather_type=feather_type,
             antialias_samples=antialias_samples,
             invert=invert
         )

@@ -24,20 +24,24 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ## 🎉 Version 0.7.0 - Tier 5: Interactive Masking! 🔥
 
-**MAJOR FEATURE: Professional Rotoscoping Tools!**
+**MAJOR FEATURE: Professional Rotoscoping Tools + Phase 1.5 Enhancements!**
 
 ### RotoBezier - Interactive Spline Drawing
 
 The #1 requested feature by compositors is here! Draw precise masks directly in ComfyUI with professional Bezier spline tools.
 
-**2 new nodes:**
+**2 nodes with Phase 1.5 professional enhancements:**
 
 1. **RotoBezier** - Interactive Bezier spline drawing for mask creation
    - **Web-based interactive drawing widget** - Click to draw points, drag handles for smooth curves
    - **de Casteljau's algorithm** from Natron for numerically stable Bezier evaluation
    - **Supersampling anti-aliasing** (1-16×) for film-quality smooth edges
    - **Distance field feathering** with smoothstep falloff (better than gaussian blur!)
-   - **Multiple splines** - Draw multiple shapes, all additive
+   - **🔥 Phase 1.5: Shape operations** - Add/Subtract/Intersect per spline for complex boolean masking
+   - **🔥 Phase 1.5: Falloff curves** - Linear/Smooth/Gaussian feather types for artistic control
+   - **🔥 Phase 1.5: Per-spline invert** - Individual control over each shape's contribution
+   - **🔥 Phase 1.5: Preset shapes** - Circle, Rectangle, Star generators for quick work
+   - **Multiple splines** - Draw multiple shapes with boolean operations
    - **Keyboard shortcuts** - Enter to close, Delete to remove, Escape to cancel
    - **JSON-based data exchange** between web widget and Python backend
 
@@ -50,6 +54,8 @@ The #1 requested feature by compositors is here! Draw precise masks directly in 
 - **Best-in-class implementation** with modern web UI and high-quality rendering
 - **Essential for garbage mattes** - quickly isolate subjects for compositing
 - **Professional soft edges** - distance field feathering beats traditional blur approaches
+- **🔥 Shape operations** - Add/Subtract/Intersect for complex boolean masking like Photoshop
+- **🔥 Artistic feathering** - Choose between Linear, Smooth (smoothstep), or Gaussian falloff curves
 
 **Total node count: 36 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5)
 
@@ -341,8 +347,8 @@ Final polish and creative finishing tools for professional output.
 
 ---
 
-### ✅ Tier 5: Interactive Masking (2 nodes) - PHASE 1 COMPLETE! 🎉🔥
-The #1 requested feature by compositors! Professional rotoscoping tools with interactive drawing.
+### ✅ Tier 5: Interactive Masking (2 nodes) - PHASE 1.5 COMPLETE! 🎉🔥
+The #1 requested feature by compositors! Professional rotoscoping tools with interactive drawing + advanced shape operations!
 
 #### Rotoscoping & Vector Masking
 - **RotoBezier** ⭐⭐⭐ - Interactive Bezier spline drawing
@@ -351,7 +357,11 @@ The #1 requested feature by compositors! Professional rotoscoping tools with int
   - **de Casteljau's algorithm** from Natron for numerical stability
   - **Supersampling anti-aliasing** (1-16×) for film-quality smooth edges
   - **Distance field feathering** - Superior to Gaussian blur approach
-  - **Multiple splines** - Draw multiple shapes, all additive
+  - **🔥 NEW: Shape operations** - Add/Subtract/Intersect per spline for complex masks
+  - **🔥 NEW: Falloff curves** - Linear/Smooth/Gaussian feather types for artistic control
+  - **🔥 NEW: Per-spline invert** - Individual splines can add or subtract from mask
+  - **🔥 NEW: Preset shapes** - Circle, Rectangle, Star generators for quick work
+  - **Multiple splines** - Draw multiple shapes with boolean operations
   - **Keyboard shortcuts** - Enter to close, Delete to remove points, Escape to cancel
   - **Closed and open splines** - Full flexibility
   - **JSON data exchange** - Clean widget-to-backend communication
@@ -366,6 +376,8 @@ The #1 requested feature by compositors! Professional rotoscoping tools with int
 - Replaces Natron/Nuke RotoPaint for basic rotoscoping workflows
 - Best-in-class implementation with modern HTML5 Canvas UI
 - Professional-quality rendering with supersampling anti-aliasing
+- **Shape operations** - Add/Subtract/Intersect for complex boolean masking
+- **Artistic control** - Multiple feather falloff curves (Linear/Smooth/Gaussian)
 - Distance field feathering produces superior soft edges vs. blur-based approaches
 - Essential workflow tool for isolating subjects in composite shots
 
