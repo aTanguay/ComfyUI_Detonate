@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -75,6 +75,57 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateTransform"] = "Transform (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load Transform node: {e}")
+
+
+# Tier 2 Nodes - Essential Utilities ✓
+try:
+    from .nodes.color.clamp import DetonateClamp
+    NODE_CLASS_MAPPINGS["DetonateClamp"] = DetonateClamp
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateClamp"] = "Clamp (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Clamp node: {e}")
+
+try:
+    from .nodes.color.invert import DetonateInvert
+    NODE_CLASS_MAPPINGS["DetonateInvert"] = DetonateInvert
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateInvert"] = "Invert (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Invert node: {e}")
+
+try:
+    from .nodes.generator.constant import DetonateConstant
+    NODE_CLASS_MAPPINGS["DetonateConstant"] = DetonateConstant
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateConstant"] = "Constant (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Constant node: {e}")
+
+try:
+    from .nodes.color.saturation import DetonateSaturation
+    NODE_CLASS_MAPPINGS["DetonateSaturation"] = DetonateSaturation
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateSaturation"] = "Saturation (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Saturation node: {e}")
+
+try:
+    from .nodes.matte.mattecontrol import DetonateMatteControl
+    NODE_CLASS_MAPPINGS["DetonateMatteControl"] = DetonateMatteControl
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateMatteControl"] = "MatteControl (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load MatteControl node: {e}")
+
+try:
+    from .nodes.channel.channelcopy import DetonateChannelCopy
+    NODE_CLASS_MAPPINGS["DetonateChannelCopy"] = DetonateChannelCopy
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateChannelCopy"] = "ChannelCopy (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load ChannelCopy node: {e}")
+
+try:
+    from .nodes.filter.edgedetect import DetonateEdgeDetect
+    NODE_CLASS_MAPPINGS["DetonateEdgeDetect"] = DetonateEdgeDetect
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateEdgeDetect"] = "EdgeDetect (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load EdgeDetect node: {e}")
 
 
 # Export for ComfyUI

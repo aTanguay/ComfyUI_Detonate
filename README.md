@@ -15,26 +15,29 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
 
-## Implemented Nodes (8/8 Priority 1 ✅ COMPLETE!)
+## Implemented Nodes
 
-### Channel Operations
+### ✅ Tier 1: The Basics (9 nodes) - COMPLETE!
+Core compositing tools used in virtually every session.
+
+#### Channel Operations
 - **Premultiply** - Convert straight alpha to premultiplied alpha
 - **Unpremultiply** - Convert premultiplied alpha to straight alpha (with epsilon and clamping options)
 - **Shuffle** - Rearrange channels (R, G, B, A, constants, luminance)
 
-### Compositing
+#### Compositing
 - **Merge** - 8 blend modes: Over, Under, Plus, Screen, Multiply, Stencil, Mask, Atop
   - Mix parameter for blend strength
   - Optional mask input
   - Auto-resize images to match dimensions
 
-### Filters
+#### Filters
 - **Blur** - Gaussian blur with separate X/Y control
   - Separable convolution for performance
   - Optional alpha channel blurring
   - GPU-accelerated
 
-### Color Operations
+#### Color Operations
 - **ColorCorrect** - Quick color adjustments
   - Saturation, contrast, gamma, gain, offset
   - Perfect for matching composite layers
@@ -43,20 +46,64 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
   - Blackpoint/whitepoint, lift, gamma, gain, offset, multiply
   - Industry-standard film scan grading
 
-### Transform
+#### Transform
 - **Transform** - 2D geometric transformations
   - Translate, rotate, scale, skew
   - Adjustable center point
   - Filter quality options (nearest, bilinear, bicubic)
   - Edge modes (black, clamp, repeat)
 
-### Matte Operations
+#### Matte Operations
 - **Erode** - Contract mattes (morphological erosion)
   - Remove noise and fringe pixels
   - Selectable channels (RGBA, RGB, Alpha)
 - **Dilate** - Expand mattes (morphological dilation)
   - Fill holes and expand coverage
   - Selectable channels (RGBA, RGB, Alpha)
+
+---
+
+### ✅ Tier 2: Essential Utilities (7 nodes) - COMPLETE!
+The "unsexy but essential" tools for daily compositing work.
+
+#### Color Utilities
+- **Clamp** - Constrain pixel values to min/max range
+  - Fix HDR overbright pixels
+  - Create binary masks via thresholding
+  - Optional remapping for out-of-range values
+- **Invert** - Invert selected channels (R, G, B, A independently)
+  - Flip mattes
+  - Create negative images
+  - Optional clamping to 0-1
+- **Saturation** - Direct saturation control
+  - Simple HSV-based saturation adjustment
+  - 0.0 = grayscale, 1.0 = original, >1.0 = boosted
+
+#### Image Generation
+- **Constant** - Solid color generator
+  - Configurable dimensions
+  - Supports HDR colors (values > 1.0)
+  - Perfect for backgrounds and test patterns
+
+#### Channel Operations
+- **ChannelCopy** - Copy channels between two streams
+  - Replace alpha from clean matte
+  - Combine different render passes
+  - Selective channel replacement
+
+#### Matte Refinement
+- **MatteControl** - All-in-one matte tool
+  - Contract/expand (size parameter)
+  - Blur (edge softening)
+  - Gamma (density adjustment)
+  - Replaces Erode→Blur→Grade workflow
+
+#### Filters
+- **EdgeDetect** - Sobel edge detection
+  - Create edge mattes for effects
+  - Optional pre-blur for noise reduction
+  - Optional post-erode for thinning
+  - Multiple output modes
 
 ## Installation
 
@@ -100,15 +147,24 @@ LoadImage (background) → Premultiply ───┘
 LoadImage → Shuffle (red → alpha) → Premultiply → Merge
 ```
 
-## Coming Soon (Priority 2)
+## Coming Soon
+
+### 🎬 Tier 3: Keying Tools (Planned)
+Professional greenscreen and matte extraction.
 
 - **ChromaKeyer** - Green/blue screen keying with spill suppression
 - **LumaKeyer** - Luminance-based key generation
-- **MatteControl** - All-in-one matte refinement (contract, expand, blur, gamma)
-- **Clamp** - Constrain values to min/max range
-- **Saturation** - Direct saturation control
-- **Invert** - Invert color/channel values
-- **ChannelCopy** - Copy channels between streams
+- **DifferenceKeyer** - Clean plate differencing
+- **Despill** - Remove greenscreen spill from edges
+
+### ⚡ Tier 4: Advanced Tools (Planned)
+Power user tools for complex workflows.
+
+- **CornerPin** - 4-point perspective transforms
+- **Defocus** - Lens-style bokeh depth of field
+- **DirectionalBlur** - Motion blur effects
+- **HueCorrect** - Hue-based color curves
+- **GridWarp** - Manual image warping
 
 ## Technical Details
 
@@ -147,5 +203,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Priority 1 COMPLETE ✅ (8/8 nodes) - Ready for production use!
-**Version**: 0.1.0-alpha
+**Status**: Tier 1 & 2 COMPLETE ✅ (16 nodes total) - Ready for production use!
+**Version**: 0.2.0
