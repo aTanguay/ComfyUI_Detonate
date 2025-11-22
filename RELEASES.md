@@ -129,9 +129,9 @@ cd ComfyUI_Detonate
 pip install -r requirements.txt
 ```
 
-The repository contains the latest stable v0.1.0 release (Tier 1: The Basics).
+The repository contains the latest stable v0.2.0 release (Tier 1 + Tier 2: 16 nodes).
 
-Future tiers will be released as separate branches or tags as development continues.
+Future tiers will be released as development continues.
 
 ---
 
@@ -207,5 +207,46 @@ MIT License - See [LICENSE](LICENSE) file for details
 
 ---
 
-**Current Release:** v0.1.0 (Tier 1: The Basics) ✅
-**Status:** Production Ready - 9 professional nodes available!
+**Current Release:** v0.2.0 (Tier 1 + Tier 2) ✅
+**Status:** Production Ready - 16 professional nodes available!
+
+### Tier 2: Essential Utilities (v0.2.0) - **AVAILABLE NOW** ✅
+
+**The "unsexy but essential" daily compositing tools.**
+
+Perfect for:
+- HDR value management
+- Matte manipulation
+- Quick color adjustments
+- Channel operations
+- Image generation
+
+**Included nodes (7 total):**
+- Clamp (constrain values, create masks)
+- Invert (flip channels independently)
+- Constant (solid color generator)
+- Saturation (direct HSV saturation)
+- ChannelCopy (copy channels between streams)
+- MatteControl (all-in-one matte refinement)
+- EdgeDetect (Sobel edge detection)
+
+**Installation:**
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/aTanguay/ComfyUI_Detonate.git
+cd ComfyUI_Detonate
+pip install -r requirements.txt
+```
+
+**Use cases:**
+- ✅ Fix overbright HDR pixels with Clamp
+- ✅ Flip mattes with Invert
+- ✅ Generate test patterns with Constant
+- ✅ Boost/reduce saturation quickly
+- ✅ Replace alpha from clean matte (ChannelCopy)
+- ✅ One-node matte cleanup (MatteControl)
+- ✅ Create edge mattes for effects
+
+---
+
+

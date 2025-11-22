@@ -10,6 +10,8 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
+- **Multi-channel EXR support** for CG render passes
+- **Cryptomatte ID mattes** for object/material extraction 🔥 **NEW!**
 - **Premultiplied alpha workflow** for accurate compositing
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
@@ -63,8 +65,8 @@ Core compositing tools used in virtually every session.
 
 ---
 
-### ✅ Tier 2: Essential Utilities (7 nodes) - COMPLETE!
-The "unsexy but essential" tools for daily compositing work.
+### ✅ Tier 2: Essential Utilities (8 nodes) - COMPLETE!
+The "unsexy but essential" tools for daily compositing work + CG workflow support.
 
 #### Color Utilities
 - **Clamp** - Constrain pixel values to min/max range
@@ -104,6 +106,35 @@ The "unsexy but essential" tools for daily compositing work.
   - Optional pre-blur for noise reduction
   - Optional post-erode for thinning
   - Multiple output modes
+
+#### File I/O
+- **Load EXR** - Multi-channel EXR loader 🎬
+  - Load CG render passes (beauty, diffuse, specular, etc.)
+  - Select specific AOV layers from multi-layer EXR
+  - Full HDR float support
+  - Industry-standard OpenImageIO backend
+
+---
+
+### 🎯 Cryptomatte: Object/Material ID Mattes (1 node) - NEW!
+Industry-standard ID matte extraction for CG compositing workflows.
+
+- **Cryptomatte Extract** - Extract object/material ID mattes 🔥 **NEW!**
+  - Load Cryptomatte-encoded EXR files from any renderer
+  - Select objects/materials by name for automatic matte extraction
+  - Perfect anti-aliasing with motion blur and transparency support
+  - CryptoObject, CryptoMaterial, CryptoAsset support
+  - Works with renders from Blender, Maya, Houdini, Cinema 4D, etc.
+  - Based on Psyop's open-source Cryptomatte specification
+
+**Example workflow:**
+```
+Render EXR with Cryptomatte → CryptomatteExtract("car, wheels") → Matte
+                                                                    ↓
+LoadEXR (beauty pass) ──────────────────────────────→ ColorCorrect (masked) → Output
+```
+
+---
 
 ## Installation
 
@@ -203,5 +234,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Tier 1 & 2 COMPLETE ✅ (16 nodes total) - Ready for production use!
-**Version**: 0.2.0
+**Status**: Tier 1 & 2 COMPLETE + Cryptomatte ✅ (18 nodes total) - Production ready with CG workflow support!
+**Version**: 0.3.0

@@ -1405,6 +1405,155 @@ All Tier 2 nodes should pass these validation tests:
 
 ---
 
-**Document Version:** 1.1
+## Cryptomatte: Object/Material ID Mattes
+
+### CryptomatteExtract Node
+
+**Category:** `detonate/cryptomatte`
+**Developer:** Psyop (Open Source)
+
+#### Purpose
+Extract object or material ID mattes from Cryptomatte-encoded EXR files. Cryptomatte is the industry standard for generating accurate ID mattes with proper anti-aliasing, transparency, motion blur, and depth of field support.
+
+#### Core Behavior
+- Reads Cryptomatte layers from multi-channel EXR files
+- Parses manifest (object/material name → ID mapping) from EXR metadata
+- Converts selected object/material names to ID floats using MurmurHash3
+- Samples Cryptomatte layers to extract coverage for matching IDs
+- Outputs combined coverage matte with proper anti-aliasing
+
+#### Cryptomatte Layer Types
+1. **CryptoObject** - Object/geometry names (most common)
+2. **CryptoMaterial** - Material/shader names
+3. **CryptoAsset** - Asset/collection names
+
+#### Cryptomatte Channel Structure
+Cryptomatte stores data in multiple layers with ID/coverage pairs:
+- `CryptoObject00.R` = ID1 (float-encoded hash)
+- `CryptoObject00.G` = Coverage1 (0-1 opacity)
+- `CryptoObject00.B` = ID2 (second sample)
+- `CryptoObject00.A` = Coverage2 (second sample opacity)
+
+Additional layers (`CryptoObject01`, `CryptoObject02`, etc.) handle more samples per pixel for complex transparency, motion blur, and depth of field.
+
+#### Algorithm
+
+**Manifest Parsing:**
+```
+1. Read EXR metadata key: "cryptomatte/{hash}/manifest"
+2. Parse JSON: {"object_name": "hex_id", ...}
+3. Convert hex IDs to float32:
+   - packed = struct.pack("=I", int(hex_id, 16))
+   - id_float = struct.unpack("=f", packed)[0]
+```
+
+**ID Hashing (MurmurHash3):**
+```python
+def mm3hash_float(name):
+    hash_32 = mmh3.hash(name)
+    # Handle edge cases (exponent 0 or 255)
+    exp = hash_32 >> 23 & 255
+    if (exp == 0) or (exp == 255):
+        hash_32 ^= 1 << 23
+    # Reinterpret uint32 as float32
+    packed = struct.pack('<L', hash_32 & 0xffffffff)
+    return struct.unpack('<f', packed)[0]
+```
+
+**Coverage Extraction:**
+```
+For each Cryptomatte layer (00, 01, 02, ...):
+    Read 4 channels: R, G, B, A
+
+    # Two ID/coverage pairs per layer
+    id1 = R channel
+    coverage1 = G channel
+    id2 = B channel
+    coverage2 = A channel
+
+    For each target_id in selected objects:
+        If abs(id1 - target_id) < epsilon:
+            total_coverage += coverage1
+        If abs(id2 - target_id) < epsilon:
+            total_coverage += coverage2
+
+Clamp total_coverage to 0-1
+Return as grayscale matte
+```
+
+#### Parameters
+- **exr_path:** Path to Cryptomatte EXR file
+- **cryptomatte_layer:** Layer type (CryptoObject, CryptoMaterial, CryptoAsset)
+- **matte_list:** Comma-separated object/material names to extract
+  - Example: `"sphere_001, cube_002, ground_plane"`
+- **list_objects:** Print available objects to console (for discovery)
+
+#### Output
+- **matte:** IMAGE tensor [1,H,W,4]
+  - Coverage in RGB (for visualization)
+  - Alpha = 1.0 (opaque)
+  - Values 0-1 representing pixel coverage
+
+#### Edge Cases
+- **Missing objects:** Print warning, skip that object
+- **No manifest:** Error - file not Cryptomatte-encoded
+- **Empty matte_list:** Return black matte
+- **Floating point comparison:** Use epsilon (1e-6) for ID matching
+- **Overlapping coverage:** Can exceed 1.0 (then clamped)
+
+#### Common Use Cases
+1. **Selective Color Correction:**
+   ```
+   EXR → CryptomatteExtract("car") → Matte
+                                      ↓
+   ColorCorrect (only affects car) ←─┘
+   ```
+
+2. **Object Isolation:**
+   ```
+   Extract specific objects as holdout mattes for compositing
+   ```
+
+3. **Multi-Object Selection:**
+   ```
+   CryptomatteExtract("hero, sidekick, props") → Combined matte
+   ```
+
+4. **Material-Based Grading:**
+   ```
+   CryptoMaterial("metal") → Adjust metallic surfaces only
+   ```
+
+#### Cryptomatte Specification
+- **Version:** 1.2.0
+- **Hash Algorithm:** MurmurHash3_32
+- **Conversion:** uint32_to_float32
+- **Storage:** Multi-channel EXR with JSON manifest in metadata
+- **Anti-aliasing:** Preserved through coverage values
+- **Reference:** https://github.com/Psyop/Cryptomatte
+
+#### Dependencies
+- **OpenImageIO** - EXR reading with metadata access
+- **mmh3** - MurmurHash3 implementation for ID hashing
+
+#### Testing & Validation
+1. Load Cryptomatte EXR from Blender/Maya/Houdini render
+2. Print available objects with `list_objects=True`
+3. Extract single object, verify coverage matches render
+4. Extract multiple objects, verify combined matte
+5. Test anti-aliased edges (should be smooth, not binary)
+6. Test transparency (overlapping objects)
+7. Compare to Nuke Cryptomatte node output
+
+#### References
+- [Psyop Cryptomatte GitHub](https://github.com/Psyop/Cryptomatte)
+- [Cryptomatte Specification PDF](https://github.com/Psyop/Cryptomatte/blob/master/specification/cryptomatte_specification.pdf)
+- [Nuke Cryptomatte Documentation](https://learn.foundry.com/nuke/content/comp_environment/cryptomatte/)
+- [Blender Cryptomatte](https://docs.blender.org/manual/en/latest/render/shader_nodes/output/aov.html)
+- [Houdini Cryptomatte](https://www.sidefx.com/docs/houdini/render/cryptomatte.html)
+
+---
+
+**Document Version:** 1.2
 **Last Updated:** 2025-01-22
-**Status:** Tier 1 Complete | Tier 2 Documented - Ready for Implementation
+**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Added

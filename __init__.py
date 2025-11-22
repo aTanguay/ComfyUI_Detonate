@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -126,6 +126,24 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateEdgeDetect"] = "EdgeDetect (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load EdgeDetect node: {e}")
+
+
+# IO Nodes - File Loaders ✓
+try:
+    from .nodes.io.load_exr import DetonateLoadEXR
+    NODE_CLASS_MAPPINGS["DetonateLoadEXR"] = DetonateLoadEXR
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateLoadEXR"] = "Load EXR (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load LoadEXR node: {e}")
+
+
+# Cryptomatte Nodes - Object/Material ID Mattes ✓
+try:
+    from .nodes.cryptomatte.cryptomatte_extract import DetonateCryptomatteExtract
+    NODE_CLASS_MAPPINGS["DetonateCryptomatteExtract"] = DetonateCryptomatteExtract
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateCryptomatteExtract"] = "Cryptomatte Extract (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Cryptomatte Extract node: {e}")
 
 
 # Export for ComfyUI
