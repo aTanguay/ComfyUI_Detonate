@@ -3,6 +3,9 @@ torch>=2.0.0
 numpy>=1.20.0
 pillow>=9.0.0
 
+# Multi-channel EXR support (for CG professionals)
+OpenImageIO>=2.4.0
+
 # Optional dependencies - for advanced features
 # Uncomment if you need these features:
 # opencv-python>=4.5.0      # Advanced image processing (keying, advanced filters)

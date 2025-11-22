@@ -128,6 +128,15 @@ except ImportError as e:
     print(f"Warning: Could not load EdgeDetect node: {e}")
 
 
+# IO Nodes - File Loaders ✓
+try:
+    from .nodes.io.load_exr import DetonateLoadEXR
+    NODE_CLASS_MAPPINGS["DetonateLoadEXR"] = DetonateLoadEXR
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateLoadEXR"] = "Load EXR (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load LoadEXR node: {e}")
+
+
 # Export for ComfyUI
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
 

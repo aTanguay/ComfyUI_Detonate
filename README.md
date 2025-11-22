@@ -10,6 +10,7 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
+- **Multi-channel EXR support** for CG render passes (NEW!)
 - **Premultiplied alpha workflow** for accurate compositing
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
@@ -63,8 +64,8 @@ Core compositing tools used in virtually every session.
 
 ---
 
-### ✅ Tier 2: Essential Utilities (7 nodes) - COMPLETE!
-The "unsexy but essential" tools for daily compositing work.
+### ✅ Tier 2: Essential Utilities (8 nodes) - COMPLETE!
+The "unsexy but essential" tools for daily compositing work + CG workflow support.
 
 #### Color Utilities
 - **Clamp** - Constrain pixel values to min/max range
@@ -104,6 +105,15 @@ The "unsexy but essential" tools for daily compositing work.
   - Optional pre-blur for noise reduction
   - Optional post-erode for thinning
   - Multiple output modes
+
+#### File I/O
+- **Load EXR** - Multi-channel EXR loader 🎬 **NEW!**
+  - Load CG render passes (beauty, diffuse, specular, etc.)
+  - Select specific AOV layers from multi-layer EXR
+  - Full HDR float support
+  - Industry-standard OpenImageIO backend
+
+---
 
 ## Installation
 
@@ -203,5 +213,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Tier 1 & 2 COMPLETE ✅ (16 nodes total) - Ready for production use!
+**Status**: Tier 1 & 2 COMPLETE ✅ (17 nodes total) - Ready for production use!
 **Version**: 0.2.0
