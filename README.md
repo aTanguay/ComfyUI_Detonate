@@ -8,18 +8,71 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ## Features
 
+- **Interactive rotoscoping** with professional Bezier spline tools 🔥 **NEW!**
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
 - **Multi-channel EXR support** for CG render passes
 - **Cryptomatte ID mattes** for object/material extraction
-- **Depth-based compositing** (ZDefocus, ZMerge) for CG workflows 🔥 **NEW!**
-- **Visual effects** (Glow, Defocus, Sharpen) for professional finishing 🔥 **NEW!**
-- **Professional color grading** with Bezier curves 🔥 **NEW!**
-- **Procedural generators** (Ramp, Noise) for masks and textures 🔥 **NEW!**
+- **Depth-based compositing** (ZDefocus, ZMerge) for CG workflows
+- **Visual effects** (Glow, Defocus, Sharpen) for professional finishing
+- **Professional color grading** with Bezier curves
+- **Procedural generators** (Ramp, Noise) for masks and textures
 - **Premultiplied alpha workflow** for accurate compositing
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
+
+## 🎉 Version 0.7.0 - Tier 5: Interactive Masking! 🔥
+
+**MAJOR FEATURE: Professional Rotoscoping Tools + Phase 1.5 Enhancements!**
+
+### RotoBezier - Interactive Spline Drawing
+
+The #1 requested feature by compositors is here! Draw precise masks directly in ComfyUI with professional Bezier spline tools.
+
+**2 nodes with Phase 1.5 professional enhancements:**
+
+1. **RotoBezier** - Interactive Bezier spline drawing for mask creation
+   - **Web-based interactive drawing widget** - Click to draw points, drag handles for smooth curves
+   - **de Casteljau's algorithm** from Natron for numerically stable Bezier evaluation
+   - **Supersampling anti-aliasing** (1-16×) for film-quality smooth edges
+   - **Distance field feathering** with smoothstep falloff (better than gaussian blur!)
+   - **🔥 Phase 1.5: Shape operations** - Add/Subtract/Intersect per spline for complex boolean masking
+   - **🔥 Phase 1.5: Falloff curves** - Linear/Smooth/Gaussian feather types for artistic control
+   - **🔥 Phase 1.5: Per-spline invert** - Individual control over each shape's contribution
+   - **🔥 Phase 1.5: Preset shapes** - Circle, Rectangle, Star generators for quick work
+   - **Multiple splines** - Draw multiple shapes with boolean operations
+   - **Keyboard shortcuts** - Enter to close, Delete to remove, Escape to cancel
+   - **JSON-based data exchange** between web widget and Python backend
+
+2. **RotoBezier From Image** - Automatically matches input image dimensions
+   - Same features as RotoBezier
+   - Convenience node for rotoscoping over footage
+
+**Why this is a game-changer:**
+- **Replaces Natron/Nuke RotoPaint** for basic rotoscoping workflows
+- **Best-in-class implementation** with modern web UI and high-quality rendering
+- **Essential for garbage mattes** - quickly isolate subjects for compositing
+- **Professional soft edges** - distance field feathering beats traditional blur approaches
+- **🔥 Shape operations** - Add/Subtract/Intersect for complex boolean masking like Photoshop
+- **🔥 Artistic feathering** - Choose between Linear, Smooth (smoothstep), or Gaussian falloff curves
+
+**Total node count: 36 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5)
+
+---
+
+## 🎉 Version 0.6.0 - Tier 4: Production Finishing!
+
+**8 new professional nodes** for final polish and creative effects:
+
+1. **Crop** - Aspect ratio presets (16:9, 2.39:1, etc.) + soft edges (linear/smooth/gaussian falloff)
+2. **Exposure** - Photographic f-stops + per-channel exposure + highlight rolloff + response curves (linear/log/filmic)
+3. **Vignette** - Multiple shapes (circular/oval/rectangular) + falloff curves + color tinting
+4. **Grain** - 4 grain types (film/digital/organic/halftone) + luminance-dependent + per-channel intensity
+5. **HueSatVal** - Direct HSV manipulation + selective hue ranges (reds/yellows/etc.) + preserve luminance
+6. **Denoise** - 3 algorithms (bilateral/median/gaussian) + detail preservation + luma/chroma separation
+7. **LUT** - 1D/3D .cube file support + trilinear interpolation + LUT caching + strength control
+8. **CornerPin** - 4-point perspective transform + homography calculation (DLT/SVD) + multiple filter modes
 
 ## 🎉 Version 0.5.0 - Quality-of-Life Upgrades!
 
@@ -234,6 +287,102 @@ Production-essential tools for professional finishing and CG workflows.
 
 ---
 
+### ✅ Tier 4: Production Finishing (8 nodes) - COMPLETE! 🎉
+Final polish and creative finishing tools for professional output.
+
+#### Framing & Composition
+- **Crop** - Aspect ratio presets + soft edges
+  - **7 aspect ratio presets**: 16:9, 2.39:1, 2.35:1, 1.85:1, 4:3, 1:1, 9:16
+  - **3 feather modes**: Linear, Smooth (smoothstep), Gaussian
+  - **Center crop mode** for quick framing
+  - Perfect for format changes and creative framing
+
+#### Photographic Controls
+- **Exposure** ⭐ - Photographic f-stops exposure
+  - **Per-channel stops** (R/G/B) for creative color grading
+  - **Highlight rolloff** - Prevent blown highlights
+  - **3 response curves**: Linear, Logarithmic (HDR), Filmic (ACES-like)
+  - More intuitive than multiply/gain for photographers
+
+- **Vignette** - Lens vignetting effect
+  - **3 shapes**: Circular, Oval, Rectangular
+  - **4 falloff curves**: Linear, Quadratic, Cubic, Smooth
+  - **Color tinting** for stylistic edges
+  - **Inverse mode** - Lighten edges instead of darken
+
+#### Texture & Film Emulation
+- **Grain** ⭐ - Film grain and texture
+  - **4 grain types**: Film (Gaussian), Digital (uniform), Organic (multi-scale), Halftone (dot pattern)
+  - **Luminance-dependent** - Shadow/highlight bias controls
+  - **Per-channel intensity** (R/G/B)
+  - **Color vs monochrome** grain
+  - Essential for matching CG to live action
+
+#### Advanced Color Control
+- **HueSatVal** - Direct HSV manipulation
+  - **Selective hue ranges** - Target specific colors (reds, yellows, greens, cyans, blues, magentas)
+  - **Range softness** - Feathered transitions
+  - **Preserve luminance** mode
+  - Perfect for precise color adjustments
+
+- **LUT** ⭐⭐ - 1D/3D color lookup tables
+  - **Industry-standard .cube file support**
+  - **Trilinear interpolation** for 3D LUTs
+  - **LUT caching** for performance
+  - **Strength control** - Mix with original
+  - Apply film emulation and creative grades
+
+#### Noise Reduction & Warping
+- **Denoise** - Edge-preserving noise reduction
+  - **3 algorithms**: Bilateral (edge-preserving), Median (salt-and-pepper), Gaussian (simple)
+  - **Detail preservation** control
+  - **Luma/chroma separation** - Denoise brightness and color independently
+  - Perfect for cleaning noisy footage
+
+- **CornerPin** ⭐⭐ - 4-point perspective transform
+  - **Homography calculation** (DLT/SVD algorithm)
+  - **3 filter modes**: Bilinear, Bicubic, Nearest
+  - **Inverse transformation**
+  - Essential for screen replacements and match-moving
+
+---
+
+### ✅ Tier 5: Interactive Masking (2 nodes) - PHASE 1.5 COMPLETE! 🎉🔥
+The #1 requested feature by compositors! Professional rotoscoping tools with interactive drawing + advanced shape operations!
+
+#### Rotoscoping & Vector Masking
+- **RotoBezier** ⭐⭐⭐ - Interactive Bezier spline drawing
+  - **Web-based interactive widget** - Click to draw points in browser
+  - **Bezier curve editing** - Drag handles for smooth curves
+  - **de Casteljau's algorithm** from Natron for numerical stability
+  - **Supersampling anti-aliasing** (1-16×) for film-quality smooth edges
+  - **Distance field feathering** - Superior to Gaussian blur approach
+  - **🔥 NEW: Shape operations** - Add/Subtract/Intersect per spline for complex masks
+  - **🔥 NEW: Falloff curves** - Linear/Smooth/Gaussian feather types for artistic control
+  - **🔥 NEW: Per-spline invert** - Individual splines can add or subtract from mask
+  - **🔥 NEW: Preset shapes** - Circle, Rectangle, Star generators for quick work
+  - **Multiple splines** - Draw multiple shapes with boolean operations
+  - **Keyboard shortcuts** - Enter to close, Delete to remove points, Escape to cancel
+  - **Closed and open splines** - Full flexibility
+  - **JSON data exchange** - Clean widget-to-backend communication
+  - Essential for garbage mattes, rotoscoping, shape masks
+
+- **RotoBezier From Image** ⭐⭐ - Auto-dimension rotoscoping
+  - Same features as RotoBezier
+  - Automatically matches input image dimensions
+  - Convenience node for rotoscoping over footage
+
+**Why RotoBezier is game-changing:**
+- Replaces Natron/Nuke RotoPaint for basic rotoscoping workflows
+- Best-in-class implementation with modern HTML5 Canvas UI
+- Professional-quality rendering with supersampling anti-aliasing
+- **Shape operations** - Add/Subtract/Intersect for complex boolean masking
+- **Artistic control** - Multiple feather falloff curves (Linear/Smooth/Gaussian)
+- Distance field feathering produces superior soft edges vs. blur-based approaches
+- Essential workflow tool for isolating subjects in composite shots
+
+---
+
 ## Installation
 
 1. Clone into your ComfyUI `custom_nodes` directory:
@@ -278,22 +427,19 @@ LoadImage → Shuffle (red → alpha) → Premultiply → Merge
 
 ## Coming Soon
 
-### 🎬 Tier 3: Keying Tools (Planned)
-Professional greenscreen and matte extraction.
+### 🎬 Future Tiers: Keying & Advanced Tools (Planned)
+Professional keying tools and advanced transforms for complex workflows.
 
+**Keying:**
 - **ChromaKeyer** - Green/blue screen keying with spill suppression
 - **LumaKeyer** - Luminance-based key generation
 - **DifferenceKeyer** - Clean plate differencing
 - **Despill** - Remove greenscreen spill from edges
 
-### ⚡ Tier 4: Advanced Tools (Planned)
-Power user tools for complex workflows.
-
-- **CornerPin** - 4-point perspective transforms
-- **Defocus** - Lens-style bokeh depth of field
-- **DirectionalBlur** - Motion blur effects
-- **HueCorrect** - Hue-based color curves
-- **GridWarp** - Manual image warping
+**Advanced Transforms:**
+- **GridWarp** - Manual image warping with grid control
+- **DirectionalBlur** - Motion blur effects with angle control
+- **LensDistort** - Lens distortion correction and simulation
 
 ## Technical Details
 
@@ -332,5 +478,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Tier 1, 2 & 3 COMPLETE + Cryptomatte ✅ (26 nodes total) - Professional VFX toolkit ready!
-**Version**: 0.4.0
+**Status**: Tier 1, 2, 3 & 4 COMPLETE + Cryptomatte ✅ (34 nodes total) - Production-ready VFX toolkit!
+**Version**: 0.6.0

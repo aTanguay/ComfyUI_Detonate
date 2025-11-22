@@ -2178,6 +2178,1033 @@ All Tier 3 nodes should pass these validation tests:
 
 ---
 
-**Document Version:** 1.3
+## Priority Tier 4: Production Finishing
+
+### 1. Crop Node (Framing & Composition)
+
+**Nuke:** Crop | **DaVinci Resolve:** Crop
+**Category:** `detonate/transform`
+
+#### Purpose
+Crop images to specific dimensions with optional soft edges for creative framing and aspect ratio changes.
+
+#### Core Behavior
+- Define rectangular crop region
+- Optional soft edge feathering
+- Aspect ratio presets (Detonate improvement!)
+- Center crop mode
+
+#### Parameters
+- **left, top, right, bottom:** Crop box in pixels
+- **aspect_ratio:** Preset aspect ratios (Detonate improvement!)
+  - "custom", "16:9", "2.39:1", "2.35:1", "1.85:1", "4:3", "1:1", "9:16"
+- **center_crop:** Automatically center the crop box (bool)
+- **feather:** Soft edge width in pixels (0-500)
+- **feather_mode:** Feather falloff shape (Detonate improvement!)
+  - "linear" - Linear falloff
+  - "smooth" - Smoothstep (3x²-2x³)
+  - "gaussian" - Gaussian falloff
+- **outside_black:** Fill outside crop with black vs clamp (bool)
+
+#### Algorithm
+```python
+# Create feather matte
+dist_to_edge = minimum distance from any edge
+if feather_mode == "smooth":
+    matte = smoothstep(dist_to_edge / feather)
+elif feather_mode == "gaussian":
+    matte = exp(-(feather - dist_to_edge)² / (2σ²))
+
+# Apply crop with soft edges
+result = cropped_image * matte
+```
+
+#### Detonate Improvements
+1. **Aspect ratio presets**: Industry-standard aspect ratios
+2. **Center crop mode**: One-click centered framing
+3. **Multiple feather modes**: Linear, smooth, gaussian
+
+#### Use Cases
+1. **Aspect ratio conversion** - 16:9 to 2.39:1 for cinematic look
+2. **Creative framing** - Remove unwanted edges
+3. **Soft vignettes** - Feathered crop for gradual edge darkening
+4. **Format changes** - Vertical to horizontal for different platforms
+
+---
+
+### 2. Exposure Node (Photographic Control)
+
+**Nuke:** EXPTool | **DaVinci Resolve:** Exposure
+**Category:** `detonate/color`
+
+#### Purpose
+Photographic stops-based exposure adjustment. More intuitive than gain/multiply for photographers and cinematographers.
+
+#### Core Formula
+```
+output = (input - pivot) * 2^stops + pivot
+```
+
+Where:
+- **stops**: f-stop exposure adjustment
+  - +1 = double exposure
+  - -1 = half exposure
+- **pivot**: Value that remains unchanged (default 0.18 = middle gray)
+
+#### Parameters
+- **stops:** Master exposure in f-stops (-10 to +10, default 0)
+- **offset:** Black point shift (-1 to +1)
+- **pivot:** Unchanged value point (0-1, default 0.18)
+- **stops_r, stops_g, stops_b:** Per-channel stops (Detonate improvement!)
+  - Allows creative color grading via selective channel exposure
+- **highlight_rolloff:** Soft clipping for highlights (Detonate improvement!)
+  - Prevents blown-out highlights (0-1, default 0)
+- **response_curve:** Exposure response curve (Detonate improvement!)
+  - "linear" - Standard exposure
+  - "logarithmic" - For HDR/log footage
+  - "filmic" - ACES-like S-curve compression
+
+#### Algorithm
+```python
+# Apply per-channel stops
+exposure_mult = 2^(stops + stops_rgb)
+result = (input - pivot) * exposure_mult + pivot
+
+# Apply highlight rolloff
+if highlight_rolloff > 0:
+    threshold = 1.0 - (rolloff * 0.5)
+    compressed = threshold + (rgb - threshold) / (1 + (rgb - threshold))
+    result = where(rgb > threshold, compressed, result)
+```
+
+#### Detonate Improvements
+1. **Per-channel stops**: Separate R/G/B exposure for color grading
+2. **Highlight rolloff**: Prevent harsh clipping
+3. **Response curves**: Linear, log, filmic for different workflows
+
+#### Use Cases
+1. **Exposure matching** - Match different camera exposures
+2. **HDR tone mapping** - Prepare HDR for SDR display
+3. **Creative grading** - Photographic-style exposure adjustments
+4. **Highlight protection** - Prevent blown highlights
+
+---
+
+### 3. Vignette Node (Lens Effects)
+
+**DaVinci Resolve:** Vignette | **Photoshop:** Lens Correction Vignette
+**Category:** `detonate/filter`
+
+#### Purpose
+Lens vignetting effect - darken or lighten image edges for photographic looks and focus control.
+
+#### Core Behavior
+- Creates radial falloff from center
+- Darkens edges (positive amount) or lightens edges (negative amount)
+- Multiple shapes and falloff curves (Detonate improvement!)
+
+#### Parameters
+- **amount:** Vignette intensity (-2 to +2, default 0.5)
+  - Positive = darken edges
+  - Negative = lighten edges
+- **size:** Vignette size (0-2, default 0.5)
+  - Controls where vignetting begins
+- **feather:** Edge softness (0-1, default 0.5)
+- **center_x, center_y:** Vignette center (0-1 normalized coordinates)
+- **shape:** Vignette shape (Detonate improvement!)
+  - "circular" - Round vignette
+  - "oval" - Elliptical
+  - "rectangular" - Box-shaped
+- **aspect_ratio:** Shape aspect ratio (0.1-10, default 1.0)
+- **falloff:** Falloff curve (Detonate improvement!)
+  - "linear", "quadratic", "cubic", "smooth"
+- **tint_r, tint_g, tint_b:** Color tint at edges (Detonate improvement!)
+  - Add color to vignette for stylistic effects
+
+#### Algorithm
+```python
+# Calculate distance from center
+if shape == "circular":
+    dist = sqrt((x - center_x)² + (y - center_y)²)
+elif shape == "rectangular":
+    dist = max(abs(x - center_x), abs(y - center_y))
+
+# Apply falloff curve
+t = clamp((dist - inner_radius) / (outer_radius - inner_radius), 0, 1)
+if falloff == "quadratic":
+    matte = t²
+elif falloff == "smooth":
+    matte = t² * (3 - 2t)  # smoothstep
+
+# Apply vignette
+vignette_mult = 1.0 - matte * amount
+result = rgb * vignette_mult + matte * tint_rgb
+```
+
+#### Detonate Improvements
+1. **Multiple shapes**: Circular, oval, rectangular
+2. **Multiple falloffs**: Linear, quadratic, cubic, smooth
+3. **Color tinting**: Add color to edges for stylistic effects
+4. **Inverse vignette**: Lighten edges instead of darken
+
+#### Use Cases
+1. **Photographic vignette** - Classic lens darkening
+2. **Focus attention** - Draw viewer to center
+3. **Stylistic grading** - Color-tinted edges
+4. **Frame composition** - Subtle edge darkening
+
+---
+
+### 4. Grain Node (Film Emulation)
+
+**Nuke:** Grain | **DaVinci Resolve:** Film Grain
+**Category:** `detonate/filter`
+
+#### Purpose
+Add procedural film grain and texture for matching CG to live action and photorealistic finishing.
+
+#### Core Behavior
+- Generate procedural noise patterns
+- Apply to image with luminance-dependent distribution
+- Multiple grain types and color modes (Detonate improvement!)
+
+#### Parameters
+- **intensity:** Grain strength (0-1, default 0.1)
+- **size:** Grain size/frequency (0.1-10, default 1.0)
+  - Smaller = finer grain
+- **grain_type:** Grain pattern (Detonate improvement!)
+  - "film" - Gaussian distribution (classic film grain)
+  - "digital" - Uniform distribution (sensor noise)
+  - "organic" - Multi-octave (layered texture)
+  - "halftone" - Dot pattern (print simulation)
+- **color:** Use color grain vs monochrome (bool)
+- **shadow_bias, highlight_bias:** Luminance-dependent grain (Detonate improvement!)
+  - Controls where grain appears most
+  - shadow_bias: -1 (more in shadows) to +1 (less in shadows)
+  - highlight_bias: +1 (more in highlights) to -1 (less in highlights)
+- **red_intensity, green_intensity, blue_intensity:** Per-channel grain (Detonate improvement!)
+  - Adjust grain per color channel
+- **seed:** Random seed for reproducibility
+
+#### Algorithm
+```python
+# Generate grain noise
+if grain_type == "film":
+    grain = randn(H, W, channels) * 0.5  # Gaussian
+elif grain_type == "digital":
+    grain = (rand(H, W, channels) * 2 - 1) * 0.5  # Uniform
+elif grain_type == "organic":
+    grain = randn() * 0.7 + randn() * 0.3  # Multi-scale
+
+# Apply size (downsample/upsample for coarser grain)
+if size != 1.0:
+    grain = resize(grain, 1/size) → resize(grain, size)
+
+# Luminance-dependent masking
+luma = 0.2126*R + 0.7152*G + 0.0722*B
+luma_mask = 1.0 + shadow_mask * (-shadow_bias) + highlight_mask * highlight_bias
+
+# Add grain to image
+result = image + grain * intensity * luma_mask
+```
+
+#### Detonate Improvements
+1. **Multiple grain types**: Film, digital, organic, halftone
+2. **Luminance-dependent**: Shadow/highlight bias controls
+3. **Per-channel intensity**: Separate R/G/B grain strength
+4. **Color vs monochrome**: Full color grain or grayscale
+
+#### Use Cases
+1. **Match CG to film** - Add grain to renders
+2. **Texture addition** - Add detail to flat renders
+3. **Digital noise simulation** - Camera sensor noise
+4. **Photographic authenticity** - Film emulation
+
+---
+
+### 5. HueSatVal Node (HSV Manipulation)
+
+**Photoshop:** Hue/Saturation | **DaVinci Resolve:** HSL
+**Category:** `detonate/color`
+
+#### Purpose
+Direct HSV (Hue/Saturation/Value) color space manipulation for precise color adjustments.
+
+#### Core Behavior
+- Convert RGB → HSV
+- Adjust H, S, V independently
+- Convert HSV → RGB
+- Selective hue ranges (Detonate improvement!)
+
+#### Parameters
+- **hue:** Hue rotation in degrees (-180 to +180)
+- **saturation:** Saturation adjustment (-1 to +1)
+  - -1 = fully desaturate
+  - 0 = no change
+  - +1 = double saturation
+- **value:** Value/brightness adjustment (-1 to +1)
+  - -1 = black
+  - 0 = no change
+  - +1 = double brightness
+- **hue_range:** Selective hue targeting (Detonate improvement!)
+  - "all", "reds", "yellows", "greens", "cyans", "blues", "magentas"
+  - Only affects selected color range
+- **range_softness:** Feathering for selective hue ranges (0-1)
+- **preserve_luminance:** Maintain original luminance (Detonate improvement!)
+  - Useful when adjusting hue/saturation without brightness change
+
+#### Algorithm
+```python
+# RGB to HSV conversion
+V = max(R, G, B)
+S = (V - min(R, G, B)) / V  if V != 0
+H = hue angle based on which channel is maximum
+
+# Apply adjustments
+H = (H + hue_shift) % 1.0
+S = S * (1 + saturation_adjustment)
+V = V * (1 + value_adjustment)
+
+# Selective hue range masking
+if hue_range != "all":
+    hue_distance = abs(H - range_center)
+    mask = smooth_falloff(hue_distance, range_softness)
+    # Apply adjustments only where mask is high
+
+# HSV to RGB conversion
+Convert back using standard HSV→RGB formula
+
+# Restore luminance if requested
+if preserve_luminance:
+    new_luma = calculate_luminance(result_rgb)
+    result_rgb *= (original_luma / new_luma)
+```
+
+#### Detonate Improvements
+1. **Selective hue ranges**: Target specific colors (reds, blues, etc.)
+2. **Range softness**: Feathered transitions between selected/unselected
+3. **Preserve luminance**: Maintain brightness while adjusting hue/sat
+
+#### Use Cases
+1. **Precise hue shifts** - Rotate specific color ranges
+2. **Saturation boosting** - Enhance specific colors
+3. **Selective desaturation** - Remove color from specific hues
+4. **Creative color grading** - Stylized color adjustments
+
+---
+
+### 6. Denoise Node (Noise Reduction)
+
+**DaVinci Resolve:** Spatial Noise Reduction
+**Category:** `detonate/filter`
+
+#### Purpose
+Edge-preserving noise reduction using bilateral filtering and other algorithms.
+
+#### Core Behavior
+- Reduce noise while preserving edges
+- Multiple denoising algorithms (Detonate improvement!)
+- Separate luma/chroma denoising
+
+#### Parameters
+- **algorithm:** Denoising algorithm (Detonate improvement!)
+  - "bilateral" - Edge-preserving (spatial + range filtering)
+  - "median" - Good for salt-and-pepper noise
+  - "gaussian" - Simple smoothing (not edge-preserving)
+- **strength:** Overall denoising strength (0-1, default 0.5)
+- **spatial_size:** Spatial filter size (1-20, default 5)
+  - Larger = more smoothing
+- **color_range:** Color similarity threshold (bilateral only, 0.01-1, default 0.1)
+  - How similar colors must be to be blurred together
+- **preserve_detail:** Detail preservation (Detonate improvement!)
+  - Adds back high-frequency detail (0-1, default 0.5)
+- **denoise_luminance, denoise_chrominance:** Luma/chroma separation (Detonate improvement!)
+  - Denoise brightness and color independently
+
+#### Algorithm (Bilateral Filter)
+```python
+# Simplified bilateral filter (full version too slow)
+# Approximated with separable Gaussian
+
+# Spatial Gaussian kernel
+spatial_kernel = gaussian(sigma=spatial_size)
+
+# Apply separable blur (approximation)
+blurred = gaussian_blur(image, spatial_size)
+
+# Mix with original based on strength
+result = image * (1 - strength) + blurred * strength
+
+# Preserve detail if requested
+if preserve_detail > 0:
+    detail = image - average_blur(image, 3)
+    result += detail * preserve_detail
+```
+
+#### Detonate Improvements
+1. **Multiple algorithms**: Bilateral, median, gaussian
+2. **Detail preservation**: Control how much high-frequency detail to keep
+3. **Luma/chroma separation**: Denoise brightness and color independently
+
+#### Use Cases
+1. **Noise cleanup** - Remove camera sensor noise
+2. **Compression artifact reduction** - Clean up blocky compression
+3. **Skin smoothing** - Beauty/glamour effects
+4. **Pre-keying cleanup** - Reduce noise before keying
+
+---
+
+### 7. LUT Node (Color Transformation)
+
+**Nuke:** OCIOFileTransform | **DaVinci Resolve:** LUT
+**Category:** `detonate/color`
+
+#### Purpose
+Apply 1D/3D color lookup tables from industry-standard .cube files.
+
+#### Core Behavior
+- Parse .cube LUT files
+- Support 1D and 3D LUTs
+- Trilinear interpolation for 3D LUTs
+- LUT caching for performance (Detonate improvement!)
+
+#### .cube File Format
+```
+LUT_3D_SIZE 32
+0.0 0.0 0.0
+0.0 0.0 0.033
+...
+1.0 1.0 1.0
+```
+
+#### Parameters
+- **lut_file:** Path to .cube LUT file (string)
+- **strength:** LUT application strength (0-1, default 1.0)
+  - Mix between original and LUT-processed
+- **interpolation:** Interpolation mode (Detonate improvement!)
+  - "trilinear" - High quality, smooth
+  - "nearest" - Fast, lower quality
+- **inverse:** Apply inverse LUT (Detonate improvement!)
+  - Approximate inverse transformation
+
+#### Algorithm (3D LUT with Trilinear Interpolation)
+```python
+# Clamp input to 0-1
+rgb = clamp(rgb, 0, 1)
+
+# Scale to LUT coordinate space
+coords = rgb * (lut_size - 1)
+
+# Get surrounding cube corners
+r0, g0, b0 = floor(coords)
+r1, g1, b1 = clamp(r0 + 1, max=lut_size - 1)
+
+# Interpolation weights
+dr = coords.r - r0
+dg = coords.g - g0
+db = coords.b - b0
+
+# Lookup 8 corners of cube
+c000 = lut[r0, g0, b0]
+c001 = lut[r0, g0, b1]
+...
+c111 = lut[r1, g1, b1]
+
+# Trilinear interpolation
+c00 = c000 * (1-db) + c001 * db
+c01 = c010 * (1-db) + c011 * db
+c10 = c100 * (1-db) + c101 * db
+c11 = c110 * (1-db) + c111 * db
+
+c0 = c00 * (1-dg) + c01 * dg
+c1 = c10 * (1-dg) + c11 * dg
+
+result = c0 * (1-dr) + c1 * dr
+```
+
+#### Detonate Improvements
+1. **LUT caching**: Parse .cube files once, cache for performance
+2. **Multiple interpolation**: Trilinear (quality) vs nearest (speed)
+3. **Strength control**: Mix with original image
+
+#### Use Cases
+1. **Film emulation** - Apply film stock LUTs
+2. **Camera matching** - Match different camera looks
+3. **Creative grading** - Apply stylized color grades
+4. **Technical conversions** - Log to Rec.709
+
+---
+
+### 8. CornerPin Node (Perspective Transform)
+
+**Nuke:** CornerPin2D | **After Effects:** Corner Pin
+**Category:** `detonate/transform`
+
+#### Purpose
+4-point perspective transform for screen replacements, match-moving, and perspective correction.
+
+#### Core Behavior
+- Define 4 source corner points
+- Define 4 destination corner points
+- Calculate homography matrix (3x3)
+- Apply perspective warp using homography
+
+#### Homography Mathematics
+Homography H maps (x, y) → (x', y') using:
+```
+[x']   [h11 h12 h13]   [x]
+[y'] = [h21 h22 h23] * [y]
+[1 ]   [h31 h32  1 ]   [1]
+```
+
+Solved using Direct Linear Transform (DLT) from 4 point correspondences.
+
+#### Parameters
+- **from_x1, from_y1...from_x4, from_y4:** Source corners (pixels)
+  - Corner 1: Top-left
+  - Corner 2: Top-right
+  - Corner 3: Bottom-right
+  - Corner 4: Bottom-left
+- **to_x1, to_y1...to_x4, to_y4:** Destination corners (pixels)
+- **filter:** Interpolation mode (Detonate improvement!)
+  - "bilinear" - Fast, good quality
+  - "bicubic" - Slower, high quality
+  - "nearest" - Fastest, pixelated
+- **invert:** Invert transformation (Detonate improvement!)
+  - Swap source and destination
+
+#### Algorithm (Homography Calculation)
+```python
+# Build DLT matrix A (8x9 for 4 point pairs)
+For each point correspondence (x, y) → (u, v):
+    [-x, -y, -1,  0,  0,  0, u*x, u*y, u]
+    [ 0,  0,  0, -x, -y, -1, v*x, v*y, v]
+
+# Solve using SVD
+U, S, Vt = svd(A)
+h = Vt[-1, :]  # Last row of Vt (null space)
+
+# Reshape to 3x3 matrix
+H = h.reshape(3, 3)
+H = H / H[2, 2]  # Normalize
+
+# Apply perspective transform
+For each output pixel (x, y):
+    # Find source pixel using inverse homography
+    src_coords = H_inv @ [x, y, 1]
+    src_x = src_coords[0] / src_coords[2]
+    src_y = src_coords[1] / src_coords[2]
+
+    # Sample source image at (src_x, src_y) using interpolation
+    result[x, y] = sample(source, src_x, src_y, filter_mode)
+```
+
+#### Detonate Improvements
+1. **Complete homography**: Full SVD-based DLT implementation
+2. **Multiple filter modes**: Bilinear, bicubic, nearest
+3. **Inverse transformation**: Swap source/destination easily
+
+#### Use Cases
+1. **Screen replacements** - Phone screens, monitors, billboards
+2. **Match-moving** - Integrate CG into tracked footage
+3. **Perspective correction** - De-keystone images
+4. **Planar tracking** - Apply tracked corner data
+
+---
+
+## Testing & Validation (Tier 4)
+
+All Tier 4 nodes should pass these validation tests:
+
+1. **Crop:**
+   - Verify aspect ratio presets calculate correctly
+   - Test center crop mode
+   - Test feather modes (linear, smooth, gaussian)
+   - Verify soft edges are smooth
+
+2. **Exposure:**
+   - Verify 2^stops formula (1 stop = 2x exposure)
+   - Test per-channel stops
+   - Test highlight rolloff prevents clipping
+   - Compare to camera/Resolve exposure tools
+
+3. **Vignette:**
+   - Test all shapes (circular, oval, rectangular)
+   - Test all falloff curves
+   - Verify color tinting works
+   - Test inverse vignette (negative amount)
+
+4. **Grain:**
+   - Test all grain types produce different patterns
+   - Verify luminance-dependent bias works
+   - Test reproducibility (same seed = same grain)
+   - Compare to Resolve Film Grain
+
+5. **HueSatVal:**
+   - Test RGB↔HSV conversion accuracy
+   - Test selective hue ranges
+   - Verify range softness creates smooth transitions
+   - Test preserve luminance mode
+
+6. **Denoise:**
+   - Test all algorithms
+   - Verify edge preservation (bilateral)
+   - Test detail preservation control
+   - Compare to dedicated denoise tools
+
+7. **LUT:**
+   - Load various .cube files (1D and 3D)
+   - Verify trilinear interpolation is smooth
+   - Test LUT caching (second load should be instant)
+   - Compare to Nuke OCIOFileTransform output
+
+8. **CornerPin:**
+   - Test homography calculation with known point pairs
+   - Verify perspective warp is correct
+   - Test all filter modes
+   - Compare to Nuke CornerPin2D
+
+---
+
+## Sources & References (Tier 4)
+
+### Nuke Documentation
+- [Crop](https://learn.foundry.com/nuke/content/reference_guide/transform_nodes/crop.html)
+- [EXPTool](https://learn.foundry.com/nuke/content/reference_guide/color_nodes/exptool.html)
+- [CornerPin2D](https://learn.foundry.com/nuke/content/reference_guide/transform_nodes/cornerpin.html)
+- [Grain](https://learn.foundry.com/nuke/content/reference_guide/color_nodes/grain.html)
+- [OCIOFileTransform](https://learn.foundry.com/nuke/content/reference_guide/color_nodes/ociofiletransform.html)
+
+### DaVinci Resolve / Other Tools
+- DaVinci Resolve: Exposure, Vignette, Film Grain, LUT
+- Photoshop: Lens Correction, Hue/Saturation
+- After Effects: Corner Pin Effect
+
+### Technical Resources
+- [Bilateral Filter Wikipedia](https://en.wikipedia.org/wiki/Bilateral_filter)
+- [.cube LUT Format Specification](https://www.adobe.com/support/downloads/icc_eula_mac_distribute.html)
+- [Homography Estimation](https://en.wikipedia.org/wiki/Homography_(computer_vision))
+- [Direct Linear Transform (DLT)](https://www.uio.no/studier/emner/matnat/its/nedlagte-emner/UNIK4690/v16/forelesninger/lecture_4_3-estimating-homographies-from-feature-correspondences.pdf)
+
+---
+
+## Priority Tier 5: Interactive Masking
+
+### 1. RotoBezier Node
+
+**Natron:** Roto/RotoPaint | **Nuke:** RotoPaint | **Mocha:** Planar Tracking + Shapes
+**Category:** `detonate/matte`
+
+#### Purpose
+Interactive Bezier spline drawing tool for rotoscoping and masking. Provides professional-grade vector mask creation with smooth Bezier curves, feathering, and anti-aliasing. Essential for isolating subjects, creating garbage mattes, and precise shape-based masking.
+
+#### Core Behavior
+- Interactive web-based Bezier curve drawing widget
+- Vector splines converted to raster masks
+- Cubic Bezier curves with tangent handle control
+- Multiple splines per mask (additive)
+- Closed and open spline support
+- High-quality anti-aliasing via supersampling
+- Distance field-based feathering
+
+#### Bezier Curve Mathematics
+
+**Cubic Bezier Evaluation (de Casteljau's Algorithm):**
+- Most numerically stable method for Bezier evaluation
+- Uses recursive linear interpolation
+- For parameter t ∈ [0, 1], curve is evaluated by:
+  ```
+  P(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃
+  ```
+- De Casteljau recursive form (used in implementation):
+  ```
+  Q₀ = (1-t)P₀ + tP₁
+  Q₁ = (1-t)P₁ + tP₂
+  Q₂ = (1-t)P₂ + tP₃
+  R₀ = (1-t)Q₀ + tQ₁
+  R₁ = (1-t)Q₁ + tQ₂
+  P(t) = (1-t)R₀ + tR₁
+  ```
+
+**Tangent Handles:**
+- Each point has incoming handle (handleIn) and outgoing handle (handleOut)
+- Handles are stored as offsets from point position
+- Control point 1: `point + handleOut`
+- Control point 2: `next_point + handleIn`
+- Smooth mode: handles are mirrored (aligned 180°)
+- Cusp mode: handles are independent
+
+**Curve Discretization:**
+- Uniform sampling: Fixed number of samples per segment (default: 20)
+- Adaptive sampling: More samples where curvature is high
+- Flatness criterion: Distance from control points to line P₀-P₃
+- Subdivision threshold: 0.5 pixels (Detonate improvement)
+
+#### Interactive Widget Features
+
+**Drawing Modes:**
+- **Draw Mode:** Click to add points, Enter to close spline, Escape to cancel
+- **Edit Mode:** Select and drag points or handles
+- **Selection:** Click near points/handles to select (10px threshold)
+
+**Point Manipulation:**
+- Click and drag points to move
+- Click and drag handles to adjust curve shape
+- Smooth mode automatically mirrors opposing handle
+- Delete key removes selected point
+
+**Visual Feedback:**
+- Selected points: Blue highlight
+- Hovered points: Yellow highlight
+- Control handles: Green squares (shown when selected/hovered)
+- Handle lines: Gray connecting lines
+- Current spline: Green curve (during drawing)
+- Completed splines: White curves
+
+**Preset Shapes** (Phase 1.5!)
+- **Circle:** Perfect circle using 4 Bezier curves
+  - Magic constant κ ≈ 0.5522847498 for circle approximation
+  - Formula: κ = 4/3 × tan(π/8)
+  - Creates mathematically accurate circle with smooth curves
+- **Rectangle:** Sharp-cornered rectangle
+  - 4 points with no tangent handles (cusp corners)
+  - Centered at canvas center with configurable width/height
+- **Star:** 5-pointed star (configurable points)
+  - Alternating outer/inner radius points
+  - Evenly spaced around circle (angleStep = π/points)
+  - Starts at top (-π/2 offset)
+- **Quick workflow:** Click button → shape appears centered → edit as needed
+
+**Data Format (JSON):**
+```json
+{
+  "splines": [
+    {
+      "points": [
+        {
+          "x": 100.0,
+          "y": 100.0,
+          "handleIn": {"x": -20.0, "y": 0.0},
+          "handleOut": {"x": 20.0, "y": 0.0},
+          "smooth": true
+        }
+      ],
+      "closed": true,
+      "feather": 2.0,
+      "operation": "add",
+      "invert": false
+    }
+  ]
+}
+```
+
+**Phase 1.5 Additions:**
+- **operation:** Shape operation mode ("add", "subtract", "intersect")
+  - Controls how this spline combines with previous splines
+  - First spline always acts as "add" regardless of setting
+- **invert:** Per-spline invert flag (true/false)
+  - Inverts this individual spline before applying operation
+  - Different from global invert parameter
+
+#### Parameters
+
+**Required:**
+- **width:** Mask width in pixels (1-8192, default: 1920)
+- **height:** Mask height in pixels (1-8192, default: 1080)
+- **spline_data:** JSON string containing spline data (from widget)
+
+**Optional:**
+- **feather:** Feather radius in pixels (0.0-100.0, default: 2.0)
+  - Distance field-based soft edge
+  - Applied after rasterization
+- **feather_type:** Falloff curve type (Phase 1.5!)
+  - **Smooth** (default): Smoothstep S-curve for natural edge
+  - **Linear**: Linear interpolation for hard falloff
+  - **Gaussian**: Gaussian distribution for soft, blur-like edge
+  - Artistic control over feather appearance
+- **antialias_samples:** Supersampling factor (1-16, default: 4)
+  - 1 = No anti-aliasing
+  - 4 = High quality (recommended)
+  - 16 = Maximum quality (slow)
+  - Uses INTER_AREA downsampling
+- **invert:** Global invert mask (False/True, default: False)
+  - Inverts final result after all shape operations
+  - Per-spline invert available via spline.invert field
+
+#### Rasterization Pipeline (Phase 1.5 Updated)
+
+**Step 1: Parse JSON**
+- Load spline data from widget
+- Extract points, handles, closed state, operation, invert
+
+**Step 2: Initialize Result Mask**
+- Create empty mask at supersampled resolution
+- Will accumulate splines using shape operations
+
+**Step 3: Process Each Spline**
+For each spline in order:
+
+**3a. Discretize Bezier Curves**
+- Use de Casteljau algorithm to sample curves
+- Convert each segment to point array
+- Scale to supersampled resolution (width × aa_factor)
+
+**3b. Rasterize Individual Spline**
+- For closed splines: PIL ImageDraw.polygon() with fill
+- For open splines: PIL ImageDraw.line() with stroke
+- Convert to float [0, 1] range
+
+**3c. Apply Per-Spline Invert**
+- If spline.invert == true: mask = 1.0 - mask
+
+**3d. Apply Shape Operation** (Phase 1.5!)
+- **Add**: result = max(result, spline_mask)
+- **Subtract**: result = max(result - spline_mask, 0)
+- **Intersect**: result = result × spline_mask
+- First spline always treated as Add
+
+**Step 4: Anti-Aliasing**
+- Downsample using cv2.INTER_AREA (area averaging)
+- Produces smooth edges with sub-pixel accuracy
+
+**Step 5: Feathering** (Phase 1.5 Enhanced)
+- Compute distance transform (inside and outside)
+- Create signed distance field (SDF)
+- Apply selected falloff curve:
+
+  **Linear:**
+  ```
+  t = clamp((sdf + feather) / (2 * feather), 0, 1)
+  result = t
+  ```
+
+  **Smooth (Smoothstep):**
+  ```
+  t = clamp((sdf + feather) / (2 * feather), 0, 1)
+  result = t² (3 - 2t)
+  ```
+
+  **Gaussian:**
+  ```
+  t = clamp((sdf + feather) / (2 * feather), 0, 1)
+  x = (t - 0.5) × 6.0
+  result = exp(-0.5 × (x/σ)²)
+  ```
+
+**Step 6: Invert (Optional)**
+- If invert=True: `mask = 1.0 - mask`
+
+**Step 7: Tensor Conversion**
+- Convert to torch.Tensor [1, H, W]
+- Float32 range [0.0, 1.0]
+
+#### Output Format
+- **Type:** MASK
+- **Shape:** [1, H, W]
+- **Range:** 0.0 (transparent) to 1.0 (opaque)
+- **Precision:** Float32
+
+#### Detonate Improvements
+
+**1. Distance Field Feathering:**
+- Nuke/Natron: Gaussian blur for feathering
+- Detonate: Distance transform + smoothstep
+- **Advantage:** More control, better quality, faster
+
+**2. Supersampling Anti-Aliasing:**
+- Nuke/Natron: Implicit anti-aliasing
+- Detonate: Configurable supersampling (1-16×)
+- **Advantage:** User can trade quality for performance
+
+**3. Dual Node Design:**
+- **RotoBezier:** Standalone mask generation (specify dimensions)
+- **RotoBezier From Image:** Match image dimensions automatically
+- **Advantage:** Flexibility for different workflows
+
+**4. Per-Spline Feathering:**
+- Each spline can have individual feather value
+- (Currently global feather, per-spline planned for future)
+
+**5. Interactive Web Widget:**
+- Modern HTML5 Canvas-based drawing
+- Real-time visual feedback
+- Keyboard shortcuts (Enter, Delete, Escape)
+- JSON data exchange with backend
+
+#### Edge Cases
+
+**Empty Splines:**
+- No splines or invalid JSON → Return empty mask (all zeros)
+
+**Degenerate Curves:**
+- Less than 2 points → Skip spline
+- All points coincident → Produces single point
+
+**Out-of-Bounds Points:**
+- Points outside canvas → Clipped during rasterization
+- Partial shapes render correctly
+
+**Feather = 0:**
+- Hard edge (no feathering)
+- Faster processing
+
+**AA Samples = 1:**
+- No anti-aliasing
+- Aliased edges (jagged)
+- Faster for drafts
+
+#### Workflow Examples
+
+**Example 1: Basic Rotoscoping**
+```
+1. Add RotoBezier node
+2. Click "Start Drawing" button
+3. Click points around subject outline
+4. Press Enter to close spline
+5. Adjust handles for smooth curve
+6. Set feather=3.0 for soft edge
+7. Connect mask to Merge node
+```
+
+**Example 2: Garbage Matte**
+```
+1. Add RotoBezier From Image node
+2. Connect foreground image input
+3. Draw rough outline around keeper area
+4. Use invert=True to remove outside
+5. Set feather=10.0 for very soft edge
+6. Use with Merge to composite
+```
+
+**Example 3: Multiple Splines**
+```
+1. Draw first spline, press Enter to finish
+2. Click "Start Drawing" again
+3. Draw second spline for additional area
+4. Both splines are combined (additive)
+5. All areas inside any spline = white
+```
+
+#### Performance Characteristics
+
+**Typical Performance (1920×1080):**
+- Simple spline (4 points): ~50ms
+- Complex spline (20 points): ~80ms
+- Multiple splines (5 splines): ~150ms
+- Max AA (16×): ~300ms
+
+**Optimization Tips:**
+- Use aa_samples=2 for draft quality
+- Reduce feather for faster processing
+- Fewer points = faster evaluation
+
+#### ComfyUI Implementation Notes
+
+**Python Backend:**
+- File: `nodes/matte/roto_bezier.py`
+- Class: `DetonateRotoBezier`, `DetonateRotoBezierFromImage`
+- Dependencies: torch, numpy, PIL, cv2
+
+**JavaScript Widget:**
+- File: `web/js/detonate_roto_bezier.js`
+- Classes: `BezierPoint`, `BezierSpline`, `BezierDrawingWidget`
+- Registration: `app.registerExtension("Detonate.RotoBezier")`
+
+**Bezier Utilities:**
+- File: `utils/bezier_utils.py`
+- Functions: `de_casteljau()`, `discretize_spline()`, `adaptive_sampling()`
+
+#### Testing Requirements
+
+**Unit Tests:**
+- de Casteljau algorithm accuracy
+- Discretization produces correct point count
+- JSON serialization/deserialization
+- Distance field feathering correctness
+
+**Integration Tests:**
+- Widget creates valid JSON
+- Python backend parses widget data
+- Mask dimensions match input
+- Anti-aliasing produces smooth edges
+- Feathering creates gradual falloff
+
+**Visual Tests:**
+- Draw simple circle → verify smooth edges
+- Draw complex shape → verify curve accuracy
+- Multiple splines → verify additive behavior
+- Invert option → verify inside/outside flip
+
+**Performance Tests:**
+- Benchmark 1080p mask generation
+- Verify AA scaling is linear
+- Test memory usage with many points
+
+---
+
+## Testing & Validation (Tier 5)
+
+### RotoBezier
+1. **Bezier Math:**
+   - Verify de Casteljau produces correct curves
+   - Test curve evaluation at t=0, 0.5, 1.0
+   - Compare to analytical formula
+   - Test edge case: all points coincident
+
+2. **Discretization:**
+   - Verify sample count is correct (20 per segment)
+   - Test closed vs open splines
+   - Verify no duplicate points at segment boundaries
+   - Test adaptive sampling produces more samples on curves
+
+3. **Rasterization:**
+   - Simple square → verify exact dimensions
+   - Circle → verify roundness and smooth edges
+   - Complex shape → visual comparison to Natron
+
+4. **Anti-Aliasing:**
+   - Compare aa_samples=1 (aliased) vs 4 (smooth)
+   - Verify downsampling preserves shape
+   - Test large AA factors (8, 16)
+
+5. **Feathering:**
+   - Verify feather=0 → hard edge
+   - Test feather=10 → smooth gradient
+   - Measure falloff matches smoothstep curve
+   - Compare to Gaussian blur approach
+
+6. **Widget Integration:**
+   - Test drawing points in browser
+   - Verify JSON serialization matches format
+   - Test handle manipulation
+   - Verify smooth mode mirrors handles
+
+---
+
+## Sources & References (Tier 5)
+
+### Natron Source Code
+- [Bezier.h](https://github.com/NatronGitHub/Natron/blob/RB-2.5/Engine/Bezier.h) - Bezier curve implementation
+- [RotoPaint.h](https://github.com/NatronGitHub/Natron/blob/RB-2.5/Engine/RotoPaint.h) - Roto node structure
+- [RotoGui.cpp](https://github.com/NatronGitHub/Natron/blob/RB-2.5/Gui/RotoGui.cpp) - Interactive UI implementation
+
+### Nuke Documentation
+- [RotoPaint](https://learn.foundry.com/nuke/content/reference_guide/draw_nodes/rotopaint.html)
+- [Bezier Shapes](https://learn.foundry.com/nuke/content/getting_started/quick_start_guide/rotoscoping.html)
+
+### Technical Resources
+- [de Casteljau's Algorithm](https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm)
+- [Cubic Bezier Curves](https://pomax.github.io/bezierinfo/)
+- [Distance Transform](https://en.wikipedia.org/wiki/Distance_transform)
+- [Smoothstep Function](https://en.wikipedia.org/wiki/Smoothstep)
+- [Supersampling Anti-Aliasing](https://en.wikipedia.org/wiki/Supersampling)
+
+### HTML5 Canvas API
+- [Canvas Bezier Curves](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/bezierCurveTo)
+- [Canvas Drawing](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes)
+
+---
+
+**Document Version:** 1.6
 **Last Updated:** 2025-01-22
-**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Documented
+**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Complete | Tier 4 Complete | Tier 5 Phase 1.5 Complete
