@@ -32,6 +32,9 @@ class DetonateEdgeDetect:
 
     CATEGORY = "detonate/filter"
 
+    # Detonate improvement: Multiple edge detection algorithms!
+    ALGORITHMS = ["sobel", "laplacian", "prewitt", "scharr"]
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -39,6 +42,9 @@ class DetonateEdgeDetect:
                 "image": ("IMAGE",),
             },
             "optional": {
+                "algorithm": (cls.ALGORITHMS, {
+                    "default": "sobel",
+                }),
                 "channels": (["luminance", "rgb", "red", "green", "blue", "alpha"], {
                     "default": "luminance",
                 }),
@@ -69,22 +75,28 @@ class DetonateEdgeDetect:
     def detect_edges(
         self,
         image: torch.Tensor,
+        algorithm: str = "sobel",
         channels: str = "luminance",
         pre_blur: float = 0.0,
         erode: int = 0,
         output_mode: str = "replace_alpha"
     ) -> tuple:
         """
-        Detect edges using Sobel operator.
+        Detect edges using various algorithms.
 
         Process:
         1. Optional pre-blur (noise reduction)
-        2. Sobel edge detection
+        2. Edge detection (Detonate improvement: 4 algorithms!)
+           - Sobel: Standard edge detection
+           - Laplacian: Second derivative (finds zero crossings)
+           - Prewitt: Similar to Sobel, simpler kernel
+           - Scharr: More accurate than Sobel for rotation
         3. Optional post-erode (thin edges)
         4. Output based on mode
 
         Args:
             image: Input tensor [B,H,W,C]
+            algorithm: Edge detection algorithm to use
             channels: Which channel(s) to detect edges from
             pre_blur: Blur applied before edge detection (reduces noise)
             erode: Erode applied after detection (thins edges)
@@ -128,8 +140,17 @@ class DetonateEdgeDetect:
         if pre_blur > 0.0:
             input_channel = self._apply_blur(input_channel, pre_blur)
 
-        # Step 3: Sobel edge detection
-        edges = self._sobel_edge_detection(input_channel)
+        # Step 3: Edge detection (algorithm selection)
+        if algorithm == "sobel":
+            edges = self._sobel_edge_detection(input_channel)
+        elif algorithm == "laplacian":
+            edges = self._laplacian_edge_detection(input_channel)
+        elif algorithm == "prewitt":
+            edges = self._prewitt_edge_detection(input_channel)
+        elif algorithm == "scharr":
+            edges = self._scharr_edge_detection(input_channel)
+        else:
+            edges = self._sobel_edge_detection(input_channel)
 
         # Step 4: Post-erode (optional)
         if erode > 0:
@@ -328,3 +349,148 @@ class DetonateEdgeDetect:
             result = image
 
         return result
+
+    def _laplacian_edge_detection(
+        self,
+        tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Apply Laplacian operator for edge detection.
+
+        Second derivative operator. Finds zero-crossings.
+        More sensitive to noise than Sobel but better at finding fine edges.
+
+        Args:
+            tensor: Input tensor [B,H,W,1]
+
+        Returns:
+            Edge magnitude tensor [B,H,W,1]
+        """
+        # Convert to [B,C,H,W] for convolution
+        tensor_nchw = tensor.permute(0, 3, 1, 2)
+
+        # Laplacian kernel
+        laplacian = torch.tensor([
+            [0,  1, 0],
+            [1, -4, 1],
+            [0,  1, 0]
+        ], dtype=torch.float32, device=tensor.device).view(1, 1, 3, 3)
+
+        # Apply Laplacian kernel
+        edges = F.conv2d(tensor_nchw, laplacian, padding=1)
+
+        # Take absolute value
+        edges = torch.abs(edges)
+
+        # Normalize to 0-1 range
+        max_val = edges.max()
+        if max_val > 0:
+            edges = edges / max_val
+
+        # Convert back to [B,H,W,C]
+        edges = edges.permute(0, 2, 3, 1)
+
+        return edges
+
+    def _prewitt_edge_detection(
+        self,
+        tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Apply Prewitt operator for edge detection.
+
+        Similar to Sobel but with simpler (uniform) weighting.
+        Slightly faster but less accurate than Sobel.
+
+        Args:
+            tensor: Input tensor [B,H,W,1]
+
+        Returns:
+            Edge magnitude tensor [B,H,W,1]
+        """
+        # Convert to [B,C,H,W] for convolution
+        tensor_nchw = tensor.permute(0, 3, 1, 2)
+
+        # Prewitt kernels
+        # Horizontal (Gx)
+        prewitt_x = torch.tensor([
+            [-1, 0, 1],
+            [-1, 0, 1],
+            [-1, 0, 1]
+        ], dtype=torch.float32, device=tensor.device).view(1, 1, 3, 3)
+
+        # Vertical (Gy)
+        prewitt_y = torch.tensor([
+            [-1, -1, -1],
+            [ 0,  0,  0],
+            [ 1,  1,  1]
+        ], dtype=torch.float32, device=tensor.device).view(1, 1, 3, 3)
+
+        # Apply Prewitt kernels
+        Gx = F.conv2d(tensor_nchw, prewitt_x, padding=1)
+        Gy = F.conv2d(tensor_nchw, prewitt_y, padding=1)
+
+        # Edge magnitude: sqrt(Gx^2 + Gy^2)
+        magnitude = torch.sqrt(Gx ** 2 + Gy ** 2 + 1e-8)
+
+        # Normalize to 0-1 range
+        max_val = magnitude.max()
+        if max_val > 0:
+            magnitude = magnitude / max_val
+
+        # Convert back to [B,H,W,C]
+        edges = magnitude.permute(0, 2, 3, 1)
+
+        return edges
+
+    def _scharr_edge_detection(
+        self,
+        tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Apply Scharr operator for edge detection.
+
+        More accurate rotation invariance than Sobel.
+        Uses optimized 3x3 kernel weights.
+        Best for precise edge orientation measurement.
+
+        Args:
+            tensor: Input tensor [B,H,W,1]
+
+        Returns:
+            Edge magnitude tensor [B,H,W,1]
+        """
+        # Convert to [B,C,H,W] for convolution
+        tensor_nchw = tensor.permute(0, 3, 1, 2)
+
+        # Scharr kernels (optimized weights)
+        # Horizontal (Gx)
+        scharr_x = torch.tensor([
+            [ -3, 0,  3],
+            [-10, 0, 10],
+            [ -3, 0,  3]
+        ], dtype=torch.float32, device=tensor.device).view(1, 1, 3, 3)
+
+        # Vertical (Gy)
+        scharr_y = torch.tensor([
+            [-3, -10, -3],
+            [ 0,   0,  0],
+            [ 3,  10,  3]
+        ], dtype=torch.float32, device=tensor.device).view(1, 1, 3, 3)
+
+        # Apply Scharr kernels
+        Gx = F.conv2d(tensor_nchw, scharr_x, padding=1)
+        Gy = F.conv2d(tensor_nchw, scharr_y, padding=1)
+
+        # Edge magnitude: sqrt(Gx^2 + Gy^2)
+        magnitude = torch.sqrt(Gx ** 2 + Gy ** 2 + 1e-8)
+
+        # Normalize to 0-1 range
+        max_val = magnitude.max()
+        if max_val > 0:
+            magnitude = magnitude / max_val
+
+        # Convert back to [B,H,W,C]
+        edges = magnitude.permute(0, 2, 3, 1)
+
+        return edges
