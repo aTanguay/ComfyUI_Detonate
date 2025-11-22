@@ -2788,6 +2788,364 @@ All Tier 4 nodes should pass these validation tests:
 
 ---
 
-**Document Version:** 1.4
+## Priority Tier 5: Interactive Masking
+
+### 1. RotoBezier Node
+
+**Natron:** Roto/RotoPaint | **Nuke:** RotoPaint | **Mocha:** Planar Tracking + Shapes
+**Category:** `detonate/matte`
+
+#### Purpose
+Interactive Bezier spline drawing tool for rotoscoping and masking. Provides professional-grade vector mask creation with smooth Bezier curves, feathering, and anti-aliasing. Essential for isolating subjects, creating garbage mattes, and precise shape-based masking.
+
+#### Core Behavior
+- Interactive web-based Bezier curve drawing widget
+- Vector splines converted to raster masks
+- Cubic Bezier curves with tangent handle control
+- Multiple splines per mask (additive)
+- Closed and open spline support
+- High-quality anti-aliasing via supersampling
+- Distance field-based feathering
+
+#### Bezier Curve Mathematics
+
+**Cubic Bezier Evaluation (de Casteljau's Algorithm):**
+- Most numerically stable method for Bezier evaluation
+- Uses recursive linear interpolation
+- For parameter t ∈ [0, 1], curve is evaluated by:
+  ```
+  P(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃
+  ```
+- De Casteljau recursive form (used in implementation):
+  ```
+  Q₀ = (1-t)P₀ + tP₁
+  Q₁ = (1-t)P₁ + tP₂
+  Q₂ = (1-t)P₂ + tP₃
+  R₀ = (1-t)Q₀ + tQ₁
+  R₁ = (1-t)Q₁ + tQ₂
+  P(t) = (1-t)R₀ + tR₁
+  ```
+
+**Tangent Handles:**
+- Each point has incoming handle (handleIn) and outgoing handle (handleOut)
+- Handles are stored as offsets from point position
+- Control point 1: `point + handleOut`
+- Control point 2: `next_point + handleIn`
+- Smooth mode: handles are mirrored (aligned 180°)
+- Cusp mode: handles are independent
+
+**Curve Discretization:**
+- Uniform sampling: Fixed number of samples per segment (default: 20)
+- Adaptive sampling: More samples where curvature is high
+- Flatness criterion: Distance from control points to line P₀-P₃
+- Subdivision threshold: 0.5 pixels (Detonate improvement)
+
+#### Interactive Widget Features
+
+**Drawing Modes:**
+- **Draw Mode:** Click to add points, Enter to close spline, Escape to cancel
+- **Edit Mode:** Select and drag points or handles
+- **Selection:** Click near points/handles to select (10px threshold)
+
+**Point Manipulation:**
+- Click and drag points to move
+- Click and drag handles to adjust curve shape
+- Smooth mode automatically mirrors opposing handle
+- Delete key removes selected point
+
+**Visual Feedback:**
+- Selected points: Blue highlight
+- Hovered points: Yellow highlight
+- Control handles: Green squares (shown when selected/hovered)
+- Handle lines: Gray connecting lines
+- Current spline: Green curve (during drawing)
+- Completed splines: White curves
+
+**Data Format (JSON):**
+```json
+{
+  "splines": [
+    {
+      "points": [
+        {
+          "x": 100.0,
+          "y": 100.0,
+          "handleIn": {"x": -20.0, "y": 0.0},
+          "handleOut": {"x": 20.0, "y": 0.0},
+          "smooth": true
+        }
+      ],
+      "closed": true,
+      "feather": 2.0
+    }
+  ]
+}
+```
+
+#### Parameters
+
+**Required:**
+- **width:** Mask width in pixels (1-8192, default: 1920)
+- **height:** Mask height in pixels (1-8192, default: 1080)
+- **spline_data:** JSON string containing spline data (from widget)
+
+**Optional:**
+- **feather:** Feather radius in pixels (0.0-100.0, default: 2.0)
+  - Distance field-based soft edge
+  - Smoothstep falloff for natural edge
+  - Applied after rasterization
+- **antialias_samples:** Supersampling factor (1-16, default: 4)
+  - 1 = No anti-aliasing
+  - 4 = High quality (recommended)
+  - 16 = Maximum quality (slow)
+  - Uses INTER_AREA downsampling
+- **invert:** Invert mask (False/True, default: False)
+  - Inside becomes outside and vice versa
+
+#### Rasterization Pipeline
+
+**Step 1: Parse JSON**
+- Load spline data from widget
+- Extract points, handles, closed state
+
+**Step 2: Discretize Bezier Curves**
+- Use de Casteljau algorithm to sample curves
+- Convert each segment to point array
+- Scale to supersampled resolution (width × aa_factor)
+
+**Step 3: Polygon Rasterization**
+- For closed splines: PIL ImageDraw.polygon() with fill
+- For open splines: PIL ImageDraw.line() with stroke
+- Binary mask: 0 (outside) or 255 (inside)
+
+**Step 4: Anti-Aliasing**
+- Render at higher resolution (aa_factor × native)
+- Downsample using cv2.INTER_AREA (area averaging)
+- Produces smooth edges with sub-pixel accuracy
+
+**Step 5: Feathering**
+- Compute distance transform (inside and outside)
+- Create signed distance field (SDF)
+- Apply smoothstep falloff over feather range:
+  ```
+  t = clamp((sdf + feather) / (2 * feather), 0, 1)
+  result = t² (3 - 2t)  // Smoothstep
+  ```
+
+**Step 6: Invert (Optional)**
+- If invert=True: `mask = 1.0 - mask`
+
+**Step 7: Tensor Conversion**
+- Convert to torch.Tensor [1, H, W]
+- Float32 range [0.0, 1.0]
+
+#### Output Format
+- **Type:** MASK
+- **Shape:** [1, H, W]
+- **Range:** 0.0 (transparent) to 1.0 (opaque)
+- **Precision:** Float32
+
+#### Detonate Improvements
+
+**1. Distance Field Feathering:**
+- Nuke/Natron: Gaussian blur for feathering
+- Detonate: Distance transform + smoothstep
+- **Advantage:** More control, better quality, faster
+
+**2. Supersampling Anti-Aliasing:**
+- Nuke/Natron: Implicit anti-aliasing
+- Detonate: Configurable supersampling (1-16×)
+- **Advantage:** User can trade quality for performance
+
+**3. Dual Node Design:**
+- **RotoBezier:** Standalone mask generation (specify dimensions)
+- **RotoBezier From Image:** Match image dimensions automatically
+- **Advantage:** Flexibility for different workflows
+
+**4. Per-Spline Feathering:**
+- Each spline can have individual feather value
+- (Currently global feather, per-spline planned for future)
+
+**5. Interactive Web Widget:**
+- Modern HTML5 Canvas-based drawing
+- Real-time visual feedback
+- Keyboard shortcuts (Enter, Delete, Escape)
+- JSON data exchange with backend
+
+#### Edge Cases
+
+**Empty Splines:**
+- No splines or invalid JSON → Return empty mask (all zeros)
+
+**Degenerate Curves:**
+- Less than 2 points → Skip spline
+- All points coincident → Produces single point
+
+**Out-of-Bounds Points:**
+- Points outside canvas → Clipped during rasterization
+- Partial shapes render correctly
+
+**Feather = 0:**
+- Hard edge (no feathering)
+- Faster processing
+
+**AA Samples = 1:**
+- No anti-aliasing
+- Aliased edges (jagged)
+- Faster for drafts
+
+#### Workflow Examples
+
+**Example 1: Basic Rotoscoping**
+```
+1. Add RotoBezier node
+2. Click "Start Drawing" button
+3. Click points around subject outline
+4. Press Enter to close spline
+5. Adjust handles for smooth curve
+6. Set feather=3.0 for soft edge
+7. Connect mask to Merge node
+```
+
+**Example 2: Garbage Matte**
+```
+1. Add RotoBezier From Image node
+2. Connect foreground image input
+3. Draw rough outline around keeper area
+4. Use invert=True to remove outside
+5. Set feather=10.0 for very soft edge
+6. Use with Merge to composite
+```
+
+**Example 3: Multiple Splines**
+```
+1. Draw first spline, press Enter to finish
+2. Click "Start Drawing" again
+3. Draw second spline for additional area
+4. Both splines are combined (additive)
+5. All areas inside any spline = white
+```
+
+#### Performance Characteristics
+
+**Typical Performance (1920×1080):**
+- Simple spline (4 points): ~50ms
+- Complex spline (20 points): ~80ms
+- Multiple splines (5 splines): ~150ms
+- Max AA (16×): ~300ms
+
+**Optimization Tips:**
+- Use aa_samples=2 for draft quality
+- Reduce feather for faster processing
+- Fewer points = faster evaluation
+
+#### ComfyUI Implementation Notes
+
+**Python Backend:**
+- File: `nodes/matte/roto_bezier.py`
+- Class: `DetonateRotoBezier`, `DetonateRotoBezierFromImage`
+- Dependencies: torch, numpy, PIL, cv2
+
+**JavaScript Widget:**
+- File: `web/js/detonate_roto_bezier.js`
+- Classes: `BezierPoint`, `BezierSpline`, `BezierDrawingWidget`
+- Registration: `app.registerExtension("Detonate.RotoBezier")`
+
+**Bezier Utilities:**
+- File: `utils/bezier_utils.py`
+- Functions: `de_casteljau()`, `discretize_spline()`, `adaptive_sampling()`
+
+#### Testing Requirements
+
+**Unit Tests:**
+- de Casteljau algorithm accuracy
+- Discretization produces correct point count
+- JSON serialization/deserialization
+- Distance field feathering correctness
+
+**Integration Tests:**
+- Widget creates valid JSON
+- Python backend parses widget data
+- Mask dimensions match input
+- Anti-aliasing produces smooth edges
+- Feathering creates gradual falloff
+
+**Visual Tests:**
+- Draw simple circle → verify smooth edges
+- Draw complex shape → verify curve accuracy
+- Multiple splines → verify additive behavior
+- Invert option → verify inside/outside flip
+
+**Performance Tests:**
+- Benchmark 1080p mask generation
+- Verify AA scaling is linear
+- Test memory usage with many points
+
+---
+
+## Testing & Validation (Tier 5)
+
+### RotoBezier
+1. **Bezier Math:**
+   - Verify de Casteljau produces correct curves
+   - Test curve evaluation at t=0, 0.5, 1.0
+   - Compare to analytical formula
+   - Test edge case: all points coincident
+
+2. **Discretization:**
+   - Verify sample count is correct (20 per segment)
+   - Test closed vs open splines
+   - Verify no duplicate points at segment boundaries
+   - Test adaptive sampling produces more samples on curves
+
+3. **Rasterization:**
+   - Simple square → verify exact dimensions
+   - Circle → verify roundness and smooth edges
+   - Complex shape → visual comparison to Natron
+
+4. **Anti-Aliasing:**
+   - Compare aa_samples=1 (aliased) vs 4 (smooth)
+   - Verify downsampling preserves shape
+   - Test large AA factors (8, 16)
+
+5. **Feathering:**
+   - Verify feather=0 → hard edge
+   - Test feather=10 → smooth gradient
+   - Measure falloff matches smoothstep curve
+   - Compare to Gaussian blur approach
+
+6. **Widget Integration:**
+   - Test drawing points in browser
+   - Verify JSON serialization matches format
+   - Test handle manipulation
+   - Verify smooth mode mirrors handles
+
+---
+
+## Sources & References (Tier 5)
+
+### Natron Source Code
+- [Bezier.h](https://github.com/NatronGitHub/Natron/blob/RB-2.5/Engine/Bezier.h) - Bezier curve implementation
+- [RotoPaint.h](https://github.com/NatronGitHub/Natron/blob/RB-2.5/Engine/RotoPaint.h) - Roto node structure
+- [RotoGui.cpp](https://github.com/NatronGitHub/Natron/blob/RB-2.5/Gui/RotoGui.cpp) - Interactive UI implementation
+
+### Nuke Documentation
+- [RotoPaint](https://learn.foundry.com/nuke/content/reference_guide/draw_nodes/rotopaint.html)
+- [Bezier Shapes](https://learn.foundry.com/nuke/content/getting_started/quick_start_guide/rotoscoping.html)
+
+### Technical Resources
+- [de Casteljau's Algorithm](https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm)
+- [Cubic Bezier Curves](https://pomax.github.io/bezierinfo/)
+- [Distance Transform](https://en.wikipedia.org/wiki/Distance_transform)
+- [Smoothstep Function](https://en.wikipedia.org/wiki/Smoothstep)
+- [Supersampling Anti-Aliasing](https://en.wikipedia.org/wiki/Supersampling)
+
+### HTML5 Canvas API
+- [Canvas Bezier Curves](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/bezierCurveTo)
+- [Canvas Drawing](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes)
+
+---
+
+**Document Version:** 1.5
 **Last Updated:** 2025-01-22
-**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Complete | Tier 4 Complete
+**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Complete | Tier 4 Complete | Tier 5 Phase 1 Complete

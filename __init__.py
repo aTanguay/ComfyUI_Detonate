@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -260,6 +260,17 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateCornerPin"] = "CornerPin (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load CornerPin node: {e}")
+
+
+# Tier 5 Nodes - Interactive Masking ✓
+try:
+    from .nodes.matte.roto_bezier import DetonateRotoBezier, DetonateRotoBezierFromImage
+    NODE_CLASS_MAPPINGS["DetonateRotoBezier"] = DetonateRotoBezier
+    NODE_CLASS_MAPPINGS["DetonateRotoBezierFromImage"] = DetonateRotoBezierFromImage
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateRotoBezier"] = "RotoBezier (Detonate)"
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateRotoBezierFromImage"] = "RotoBezier From Image (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load RotoBezier nodes: {e}")
 
 
 # Export for ComfyUI

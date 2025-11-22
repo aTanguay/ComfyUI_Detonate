@@ -8,18 +8,52 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ## Features
 
+- **Interactive rotoscoping** with professional Bezier spline tools 🔥 **NEW!**
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
 - **Multi-channel EXR support** for CG render passes
 - **Cryptomatte ID mattes** for object/material extraction
-- **Depth-based compositing** (ZDefocus, ZMerge) for CG workflows 🔥 **NEW!**
-- **Visual effects** (Glow, Defocus, Sharpen) for professional finishing 🔥 **NEW!**
-- **Professional color grading** with Bezier curves 🔥 **NEW!**
-- **Procedural generators** (Ramp, Noise) for masks and textures 🔥 **NEW!**
+- **Depth-based compositing** (ZDefocus, ZMerge) for CG workflows
+- **Visual effects** (Glow, Defocus, Sharpen) for professional finishing
+- **Professional color grading** with Bezier curves
+- **Procedural generators** (Ramp, Noise) for masks and textures
 - **Premultiplied alpha workflow** for accurate compositing
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
+
+## 🎉 Version 0.7.0 - Tier 5: Interactive Masking! 🔥
+
+**MAJOR FEATURE: Professional Rotoscoping Tools!**
+
+### RotoBezier - Interactive Spline Drawing
+
+The #1 requested feature by compositors is here! Draw precise masks directly in ComfyUI with professional Bezier spline tools.
+
+**2 new nodes:**
+
+1. **RotoBezier** - Interactive Bezier spline drawing for mask creation
+   - **Web-based interactive drawing widget** - Click to draw points, drag handles for smooth curves
+   - **de Casteljau's algorithm** from Natron for numerically stable Bezier evaluation
+   - **Supersampling anti-aliasing** (1-16×) for film-quality smooth edges
+   - **Distance field feathering** with smoothstep falloff (better than gaussian blur!)
+   - **Multiple splines** - Draw multiple shapes, all additive
+   - **Keyboard shortcuts** - Enter to close, Delete to remove, Escape to cancel
+   - **JSON-based data exchange** between web widget and Python backend
+
+2. **RotoBezier From Image** - Automatically matches input image dimensions
+   - Same features as RotoBezier
+   - Convenience node for rotoscoping over footage
+
+**Why this is a game-changer:**
+- **Replaces Natron/Nuke RotoPaint** for basic rotoscoping workflows
+- **Best-in-class implementation** with modern web UI and high-quality rendering
+- **Essential for garbage mattes** - quickly isolate subjects for compositing
+- **Professional soft edges** - distance field feathering beats traditional blur approaches
+
+**Total node count: 36 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5)
+
+---
 
 ## 🎉 Version 0.6.0 - Tier 4: Production Finishing!
 
@@ -33,8 +67,6 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 6. **Denoise** - 3 algorithms (bilateral/median/gaussian) + detail preservation + luma/chroma separation
 7. **LUT** - 1D/3D .cube file support + trilinear interpolation + LUT caching + strength control
 8. **CornerPin** - 4-point perspective transform + homography calculation (DLT/SVD) + multiple filter modes
-
-**Total node count: 34 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4)
 
 ## 🎉 Version 0.5.0 - Quality-of-Life Upgrades!
 
@@ -306,6 +338,36 @@ Final polish and creative finishing tools for professional output.
   - **3 filter modes**: Bilinear, Bicubic, Nearest
   - **Inverse transformation**
   - Essential for screen replacements and match-moving
+
+---
+
+### ✅ Tier 5: Interactive Masking (2 nodes) - PHASE 1 COMPLETE! 🎉🔥
+The #1 requested feature by compositors! Professional rotoscoping tools with interactive drawing.
+
+#### Rotoscoping & Vector Masking
+- **RotoBezier** ⭐⭐⭐ - Interactive Bezier spline drawing
+  - **Web-based interactive widget** - Click to draw points in browser
+  - **Bezier curve editing** - Drag handles for smooth curves
+  - **de Casteljau's algorithm** from Natron for numerical stability
+  - **Supersampling anti-aliasing** (1-16×) for film-quality smooth edges
+  - **Distance field feathering** - Superior to Gaussian blur approach
+  - **Multiple splines** - Draw multiple shapes, all additive
+  - **Keyboard shortcuts** - Enter to close, Delete to remove points, Escape to cancel
+  - **Closed and open splines** - Full flexibility
+  - **JSON data exchange** - Clean widget-to-backend communication
+  - Essential for garbage mattes, rotoscoping, shape masks
+
+- **RotoBezier From Image** ⭐⭐ - Auto-dimension rotoscoping
+  - Same features as RotoBezier
+  - Automatically matches input image dimensions
+  - Convenience node for rotoscoping over footage
+
+**Why RotoBezier is game-changing:**
+- Replaces Natron/Nuke RotoPaint for basic rotoscoping workflows
+- Best-in-class implementation with modern HTML5 Canvas UI
+- Professional-quality rendering with supersampling anti-aliasing
+- Distance field feathering produces superior soft edges vs. blur-based approaches
+- Essential workflow tool for isolating subjects in composite shots
 
 ---
 
