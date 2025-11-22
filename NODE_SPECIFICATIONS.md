@@ -809,6 +809,573 @@ For each node, test with:
 
 ---
 
+## Priority Tier 2: Essential Utilities
+
+### 1. Clamp Node (Color Utility)
+
+**Nuke:** Clamp | **Natron:** Clamp
+**Category:** `detonate/color`
+
+#### Purpose
+Constrain pixel values to a specified min/max range. Essential for managing float images with HDR values, preventing extreme overbright pixels, and creating binary masks.
+
+#### Core Behavior
+- Default: Clamps all channels to 0-1 range
+- Can clamp to custom min/max values
+- Optional "clamp to" values for remapping outside range
+- Per-channel control (RGBA individually)
+
+#### Parameters
+
+**minimum** (float)
+- Default: 0.0
+- Range: -∞ to ∞
+- Values below this are clamped
+
+**maximum** (float)
+- Default: 1.0
+- Range: -∞ to ∞
+- Values above this are clamped
+
+**min_clamp_to_enabled** (bool)
+- Default: false
+- If true, values below minimum are set to min_clamp_to instead of minimum
+
+**min_clamp_to** (float)
+- Default: 0.0
+- Replacement value for pixels below minimum (when enabled)
+
+**max_clamp_to_enabled** (bool)
+- Default: false
+- If true, values above maximum are set to max_clamp_to instead of maximum
+
+**max_clamp_to** (float)
+- Default: 1.0
+- Replacement value for pixels above maximum (when enabled)
+
+**channels** (enum)
+- Options: ["rgba", "rgb", "alpha"]
+- Default: "rgba"
+- Which channels to clamp
+
+#### Algorithm
+
+```python
+for each pixel in image:
+    for each channel in selected_channels:
+        if pixel[channel] < minimum:
+            if min_clamp_to_enabled:
+                pixel[channel] = min_clamp_to
+            else:
+                pixel[channel] = minimum
+        elif pixel[channel] > maximum:
+            if max_clamp_to_enabled:
+                pixel[channel] = max_clamp_to
+            else:
+                pixel[channel] = maximum
+```
+
+#### Common Use Cases
+1. **Clamp to 0-1:** Fix overbright HDR pixels before operations requiring 0-1 range
+2. **Binary Masks:** Set min=threshold, max=threshold-epsilon, enable clamp_to with 0 and 1
+3. **Safe Premult:** Clamp to 0-1 before premultiply to avoid negative alpha issues
+4. **Depth Normalization:** Clamp depth passes to reasonable near/far range
+
+#### Reference
+- [Nuke Clamp Documentation](https://learn.foundry.com/nuke/content/reference_guide/color_nodes/clamp.html)
+- [Natron Clamp Documentation](https://natron.readthedocs.io/en/v2.3.15/plugins/net.sf.openfx.Clamp.html)
+
+---
+
+### 2. Invert Node (Color Utility)
+
+**Nuke:** Invert | **Natron:** Invert
+**Category:** `detonate/color`
+
+#### Purpose
+Invert selected channels (RGB and/or alpha). Essential for flipping mattes, creating negative images, and channel manipulation.
+
+#### Core Behavior
+- Inverts selected channels using `1 - value` formula
+- Can invert RGB and Alpha independently
+- Preserves float range (values > 1.0 become negative)
+
+#### Parameters
+
+**channels** (multi-select or individual bools)
+- Options: R, G, B, A
+- Default: R, G, B (RGB only, preserve alpha)
+- Which channels to invert
+
+**clamp** (bool)
+- Default: false
+- If true, clamp result to 0-1 range after inversion
+- Useful for float images that might go negative
+
+#### Algorithm
+
+```python
+for each pixel in image:
+    if invert_red:
+        pixel.r = 1.0 - pixel.r
+    if invert_green:
+        pixel.g = 1.0 - pixel.g
+    if invert_blue:
+        pixel.b = 1.0 - pixel.b
+    if invert_alpha:
+        pixel.a = 1.0 - pixel.a
+
+    if clamp:
+        pixel = max(0.0, min(pixel, 1.0))
+```
+
+#### Common Use Cases
+1. **Flip Matte:** Invert alpha to reverse matte (inside↔outside)
+2. **Create Negative:** Invert RGB for artistic negative effect
+3. **Invert Mask:** Flip mask channel for opposite selection
+4. **Channel Math:** Part of channel manipulation workflows
+
+#### Edge Cases
+- Float values > 1.0 become negative when inverted (use clamp if unwanted)
+- Premultiplied alpha: invert alpha will break premult (unpremult first!)
+
+#### Reference
+- [Natron Invert Documentation](https://natron.readthedocs.io/en/v2.3.15/plugins/net.sf.openfx.Invert.html)
+- [Natron OpenFX Invert Plugin Walkthrough](https://github.com/NatronGitHub/Natron/wiki/OpenFX-plugin-programming-guide-(Invert-plugin-walkthrough))
+
+---
+
+### 3. Constant Node (Image Generator)
+
+**Nuke:** Constant | **Fusion:** Background
+**Category:** `detonate/generator`
+
+#### Purpose
+Generate solid color image with specified dimensions and RGBA values. Essential for backgrounds, test patterns, and color references.
+
+#### Core Behavior
+- Creates image where every pixel is the same color
+- Fills entire frame including outside pixels
+- Can create any RGBA color including HDR values (>1.0)
+
+#### Parameters
+
+**width** (int)
+- Default: 1920
+- Range: 1 to 16384
+- Image width in pixels
+
+**height** (int)
+- Default: 1080
+- Range: 1 to 16384
+- Image height in pixels
+
+**color** (RGBA color)
+- Default: [0.0, 0.0, 0.0, 1.0] (black with full alpha)
+- Range per channel: 0.0 to ∞ (supports HDR)
+- RGBA values for the constant color
+
+**red** (float)
+- Default: 0.0
+- Individual red channel control
+
+**green** (float)
+- Default: 0.0
+- Individual green channel control
+
+**blue** (float)
+- Default: 0.0
+- Individual blue channel control
+
+**alpha** (float)
+- Default: 1.0
+- Individual alpha channel control
+
+#### Algorithm
+
+```python
+image = torch.full((batch, height, width, 4),
+                   [red, green, blue, alpha],
+                   dtype=torch.float32)
+```
+
+#### Common Use Cases
+1. **Solid Background:** Black or white background for compositing
+2. **Test Pattern:** Specific color for testing pipeline
+3. **Color Reference:** Create color chip for matching
+4. **Matte Generation:** White constant to use as full matte
+5. **HDR Colors:** Generate >1.0 values for bloom/glow effects
+
+#### Reference
+- [Nuke Constant Documentation](https://learn.foundry.com/nuke/content/reference_guide/image_nodes/constant.html)
+
+---
+
+### 4. Saturation Node (Color Correction)
+
+**Nuke:** Saturation | **Fusion:** ColorCorrector (saturation parameter)
+**Category:** `detonate/color`
+
+#### Purpose
+Adjust color saturation (intensity of color) without affecting luminance. Simpler than ColorCorrect when only saturation adjustment is needed.
+
+#### Core Behavior
+- Converts RGB to HSV, adjusts S channel, converts back to RGB
+- 0.0 = fully desaturated (grayscale)
+- 1.0 = no change (original saturation)
+- >1.0 = increased saturation (more vivid)
+
+#### Parameters
+
+**saturation** (float)
+- Default: 1.0
+- Range: 0.0 to 4.0 (UI slider), technically 0 to ∞
+- Saturation multiplier
+  - 0.0: Complete desaturation (grayscale)
+  - 1.0: Original colors
+  - 2.0: Double saturation (very vivid)
+
+#### Algorithm
+
+```python
+# Convert RGB to HSV
+hsv = rgb_to_hsv(image[:, :, :, :3])
+
+# Adjust saturation
+hsv[:, :, :, 1] = hsv[:, :, :, 1] * saturation
+
+# Clamp saturation to valid range
+hsv[:, :, :, 1] = torch.clamp(hsv[:, :, :, 1], 0.0, 1.0)
+
+# Convert back to RGB
+rgb = hsv_to_rgb(hsv)
+
+# Preserve alpha
+result = torch.cat([rgb, alpha], dim=3)
+```
+
+#### RGB to HSV Conversion
+Using standard conversion where:
+- V = max(R, G, B)
+- S = (max - min) / max  (if max ≠ 0)
+- H = hue angle based on which channel is maximum
+
+#### Common Use Cases
+1. **Desaturation:** Reduce to grayscale (saturation=0.0)
+2. **Enhance Colors:** Boost vibrancy (saturation=1.5-2.0)
+3. **Partial Desat:** Subtle reduction (saturation=0.7-0.9)
+4. **Stylistic Look:** Create washed-out or hyper-saturated looks
+
+#### Edge Cases
+- Works on straight (unpremultiplied) alpha images
+- Saturation at 0.0 creates perfect grayscale using Rec. 709 luminance
+- Values >1.0 can push colors out of gamut
+
+#### Reference
+- [Nuke HSV Correction](https://learn.foundry.com/nuke/content/comp_environment/color_correction/making_hsv_corrections.html)
+
+---
+
+### 5. MatteControl Node (Matte Refinement)
+
+**Nuke:** FilterErode (blur mode) + gamma | **Fusion:** Matte Control
+**Category:** `detonate/matte`
+
+#### Purpose
+All-in-one matte refinement combining contract/expand, blur, and gamma in proper order. Essential for cleaning up keyed mattes or adjusting roto.
+
+#### Core Behavior
+- Operates on alpha channel (or selected channels)
+- Process order: Contract/Expand → Blur → Gamma
+- Single node replaces Erode → Blur → Grade workflow
+
+#### Parameters
+
+**size** (int)
+- Default: 0
+- Range: -100 to 100
+- Negative: Contract matte (erode, choke)
+- Positive: Expand matte (dilate, spread)
+- 0: No change
+
+**blur** (float)
+- Default: 0.0
+- Range: 0.0 to 100.0
+- Gaussian blur size (in pixels)
+- Softens matte edges
+
+**gamma** (float)
+- Default: 1.0
+- Range: 0.1 to 4.0
+- Adjusts semi-transparent areas
+- <1.0: Darkens/thins matte
+- >1.0: Lightens/thickens matte
+
+**channels** (enum)
+- Options: ["alpha", "rgb", "rgba"]
+- Default: "alpha"
+- Which channels to process
+
+#### Algorithm
+
+```python
+# Step 1: Contract/Expand (morphological operation)
+if size < 0:
+    result = erode(image, abs(size), channels)
+elif size > 0:
+    result = dilate(image, size, channels)
+else:
+    result = image
+
+# Step 2: Blur
+if blur > 0:
+    result = gaussian_blur(result, blur, channels)
+
+# Step 3: Gamma
+if gamma != 1.0:
+    result_channels = torch.pow(result_channels + 1e-7, 1.0 / gamma)
+```
+
+#### Common Use Cases
+1. **Choke Matte:** size=-2, blur=1.0 (shrink and soften)
+2. **Spread Matte:** size=2, blur=1.0 (expand and soften)
+3. **Thicken Thin Matte:** gamma=1.5-2.0 (boost semi-transparent)
+4. **Clean Noisy Matte:** blur=2.0, gamma=0.8 (smooth and darken)
+5. **Edge Refinement:** size=-1, blur=0.5, gamma=1.2 (tight clean edge)
+
+#### Order Matters!
+- Contract/Expand BEFORE blur (otherwise blur changes size result)
+- Gamma AFTER blur (to adjust the blurred edge density)
+
+#### Reference
+- [Nuke Erode (blur)](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/erode_blur.html)
+- [Fusion Matte Control](https://jayaretv.com/fusion/matte-control-node/)
+- [Alpha Density Technique](https://www.keheka.com/alpha-density-matte-control-tool-for-nuke/)
+
+---
+
+### 6. EdgeDetect Node (Filter)
+
+**Nuke:** EdgeDetect | **Natron:** EdgeDetect
+**Category:** `detonate/filter`
+
+#### Purpose
+Detect edges in image using Sobel operator. Creates edge mattes for effects, selections, or stylistic looks.
+
+#### Core Behavior
+- Uses Sobel edge detection (gradient magnitude)
+- Optional pre-blur for noise reduction
+- Optional post-erode to thin edges
+- Outputs grayscale edge intensity
+
+#### Parameters
+
+**channels** (enum)
+- Options: ["rgb", "red", "green", "blue", "alpha", "luminance"]
+- Default: "luminance"
+- Which channel(s) to detect edges from
+
+**pre_blur** (float)
+- Default: 0.0
+- Range: 0.0 to 20.0
+- Blur applied BEFORE edge detection (reduces noise)
+
+**erode** (int)
+- Default: 0
+- Range: 0 to 10
+- Erode applied AFTER edge detection (thins edges)
+
+**output_mode** (enum)
+- Options: ["replace_alpha", "replace_rgb", "multiply_alpha"]
+- Default: "replace_alpha"
+- How to output edge matte
+
+#### Algorithm
+
+```python
+# Step 1: Pre-blur (optional)
+if pre_blur > 0:
+    image = gaussian_blur(image, pre_blur)
+
+# Step 2: Sobel edge detection
+# Horizontal Sobel kernel:
+# [-1  0  1]
+# [-2  0  2]
+# [-1  0  1]
+
+# Vertical Sobel kernel:
+# [-1 -2 -1]
+# [ 0  0  0]
+# [ 1  2  1]
+
+Gx = convolve(image, sobel_horizontal)
+Gy = convolve(image, sobel_vertical)
+
+# Edge magnitude
+edges = sqrt(Gx^2 + Gy^2)
+
+# Normalize to 0-1 range
+edges = edges / edges.max()
+
+# Step 3: Post-erode (optional)
+if erode > 0:
+    edges = morphological_erode(edges, erode)
+
+# Step 4: Output based on mode
+if output_mode == "replace_alpha":
+    result = cat([image_rgb, edges], dim=3)
+elif output_mode == "replace_rgb":
+    result = cat([edges.repeat(3), alpha], dim=3)
+elif output_mode == "multiply_alpha":
+    result = cat([image_rgb, image_alpha * edges], dim=3)
+```
+
+#### Sobel Operator Details
+- Detects both horizontal and vertical edges
+- Returns gradient magnitude (edge strength)
+- More sensitive to diagonal edges than Prewitt operator
+- Standard in professional compositing
+
+#### Common Use Cases
+1. **Edge Matte:** Detect object edges for effects (glow, outline)
+2. **Stylistic:** Create line art / sketch effect
+3. **Masking:** Use edges as selection for targeted corrections
+4. **Sharpening:** Detect edges to guide sharpening
+
+#### Parameters Interaction
+- pre_blur reduces noise but softens edges (trade-off)
+- erode makes edges thinner/sharper after detection
+- Recommended: pre_blur=1.0-2.0 for noisy images, erode=0-1 to refine
+
+#### Reference
+- [Nuke EdgeDetect Documentation](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/edgedetect.html)
+- [Sobel Operator (Wikipedia)](https://en.wikipedia.org/wiki/Sobel_operator)
+
+---
+
+### 7. ChannelCopy Node (Channel Operations)
+
+**Nuke:** Copy | **Fusion:** ChannelBooleans
+**Category:** `detonate/channel`
+
+#### Purpose
+Copy channels from one input stream (B) to another input stream (A). Essential for multi-stream workflows where you need to replace specific channels.
+
+#### Core Behavior
+- Two inputs: A (base) and B (source)
+- Copy selected channels from B to A
+- All other channels from A are preserved
+
+#### Parameters
+
+**copy_red** (bool)
+- Default: false
+- Copy red channel from B to A
+
+**copy_green** (bool)
+- Default: false
+- Copy green channel from B to A
+
+**copy_blue** (bool)
+- Default: false
+- Copy blue channel from B to A
+
+**copy_alpha** (bool)
+- Default: true
+- Copy alpha channel from B to A
+
+**from_channels** (dict/mapping, advanced)
+- Map channels: {"red": "red", "green": "green", "blue": "blue", "alpha": "alpha"}
+- Default: identity mapping
+- Advanced: Can copy from different channels (e.g., copy B.red to A.alpha)
+
+#### Algorithm
+
+```python
+result = A.clone()
+
+if copy_red:
+    result[:, :, :, 0] = B[:, :, :, 0]
+if copy_green:
+    result[:, :, :, 1] = B[:, :, :, 1]
+if copy_blue:
+    result[:, :, :, 2] = B[:, :, :, 2]
+if copy_alpha:
+    result[:, :, :, 3] = B[:, :, :, 3]
+```
+
+#### Common Use Cases
+1. **Replace Alpha:** Copy clean alpha from B to RGB from A
+2. **Channel Swap:** Copy B's red channel to A's alpha
+3. **Selective Replace:** Replace only RGB, keep A's original alpha
+4. **Multi-Pass Compositing:** Combine different render passes
+
+#### Example Workflows
+
+**Replace Alpha from Clean Matte:**
+```
+ImageA (RGB with bad alpha) ──┐
+                               └→ ChannelCopy (copy alpha only) → Output
+CleanMatte (good alpha) ───────┘
+```
+
+**Combine Render Passes:**
+```
+BeautyPass (RGB) ──────────┐
+                           └→ ChannelCopy (copy RGB only) → Output
+AlphaPass (clean alpha) ───┘
+```
+
+---
+
+## Testing & Validation (Tier 2)
+
+All Tier 2 nodes should pass these validation tests:
+
+1. **Clamp:**
+   - Verify values clamped correctly to 0-1
+   - Test custom min/max ranges
+   - Test binary mask creation (threshold)
+   - Test float HDR values (>1.0, <0.0)
+
+2. **Invert:**
+   - Verify 1-x formula for each channel
+   - Test independent channel inversion
+   - Test float values >1.0 (become negative)
+   - Test matte flipping (alpha invert)
+
+3. **Constant:**
+   - Verify uniform color across all pixels
+   - Test various resolutions
+   - Test HDR color values (>1.0)
+   - Test batch generation
+
+4. **Saturation:**
+   - Verify 0.0 produces grayscale
+   - Verify 1.0 produces no change
+   - Test extreme values (>2.0)
+   - Compare to Nuke/Fusion HSV output
+
+5. **MatteControl:**
+   - Verify operation order (size → blur → gamma)
+   - Test size negative (contract) and positive (expand)
+   - Test blur softening
+   - Test gamma density adjustment
+
+6. **EdgeDetect:**
+   - Verify Sobel kernel implementation
+   - Test pre-blur noise reduction
+   - Test post-erode edge thinning
+   - Compare to Nuke EdgeDetect output
+
+7. **ChannelCopy:**
+   - Verify correct channels copied
+   - Test with 2 input streams
+   - Test selective channel copy
+   - Verify preserved channels unchanged
+
+---
+
 ## Sources & References
 
 ### Nuke Documentation
@@ -838,6 +1405,6 @@ For each node, test with:
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Last Updated:** 2025-01-22
-**Status:** Priority Tier 1 Complete - Ready for Implementation
+**Status:** Tier 1 Complete | Tier 2 Documented - Ready for Implementation
