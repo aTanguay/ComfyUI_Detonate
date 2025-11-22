@@ -75,16 +75,16 @@ This is a working task list for tracking implementation progress. Check off item
 - [ ] Add unit tests for Merge node
 - [ ] Create example workflow
 
-### 2. Transform Node
-- [ ] Implement base Transform node class
-- [ ] Add translate (X/Y position)
-- [ ] Add rotate (degrees)
-- [ ] Add scale (uniform and X/Y separate)
-- [ ] Add center point control
-- [ ] Add skew controls
-- [ ] Add filter quality options (nearest, bilinear, bicubic)
-- [ ] Add motion blur (optional for v1)
-- [ ] Handle edge modes (black, clamp, repeat)
+### 2. Transform Node ✅
+- [x] Implement base Transform node class
+- [x] Add translate (X/Y position)
+- [x] Add rotate (degrees)
+- [x] Add scale (uniform and X/Y separate)
+- [x] Add center point control
+- [x] Add skew controls
+- [x] Add filter quality options (nearest, bilinear, bicubic)
+- [ ] Add motion blur (optional for v2)
+- [x] Handle edge modes (black, clamp, repeat)
 - [ ] Add unit tests for Transform node
 - [ ] Create example workflow
 
@@ -98,15 +98,16 @@ This is a working task list for tracking implementation progress. Check off item
 - [ ] Add unit tests for Blur node
 - [ ] Create example workflow
 
-### 4. Grade Node
-- [ ] Implement base Grade node class
-- [ ] Add Lift controls (Master + RGB)
-- [ ] Add Gamma controls (Master + RGB)
-- [ ] Add Gain controls (Master + RGB)
-- [ ] Add Offset controls (Master + RGB)
-- [ ] Implement proper color math (shadows/mids/highlights)
-- [ ] Add black point/white point clamps
-- [ ] Add reverse toggle
+### 4. Grade Node ✅
+- [x] Implement base Grade node class
+- [x] Add Lift controls (Master)
+- [x] Add Gamma controls (Master)
+- [x] Add Gain controls (Master)
+- [x] Add Offset controls (Master)
+- [x] Implement proper color math (shadows/mids/highlights)
+- [x] Add black point/white point clamps
+- [ ] Add per-RGB channel controls (for v2)
+- [ ] Add reverse toggle (for v2)
 - [ ] Add unit tests for Grade node
 - [ ] Create example workflow
 
@@ -125,25 +126,25 @@ This is a working task list for tracking implementation progress. Check off item
 
 ## Phase 2: Core Compositing Nodes (Priority 2)
 
-### 6. ColorCorrect Node
-- [ ] Implement base ColorCorrect node class
-- [ ] Add Saturation control
-- [ ] Add Contrast control
-- [ ] Add Gamma control
-- [ ] Add Gain control
-- [ ] Add Offset control
+### 6. ColorCorrect Node ✅
+- [x] Implement base ColorCorrect node class
+- [x] Add Saturation control
+- [x] Add Contrast control
+- [x] Add Gamma control
+- [x] Add Gain control
+- [x] Add Offset control
 - [ ] Add unit tests for ColorCorrect node
 - [ ] Create example workflow
 
-### 7. Erode / Dilate Node
-- [ ] Implement Erode node
-  - [ ] Add size parameter
-  - [ ] Implement morphological erosion
-  - [ ] Optimize for performance
-- [ ] Implement Dilate node
-  - [ ] Add size parameter
-  - [ ] Implement morphological dilation
-  - [ ] Optimize for performance
+### 7. Erode / Dilate Node ✅
+- [x] Implement Erode node
+  - [x] Add size parameter
+  - [x] Implement morphological erosion
+  - [x] Optimize for performance (GPU max pooling)
+- [x] Implement Dilate node
+  - [x] Add size parameter
+  - [x] Implement morphological dilation
+  - [x] Optimize for performance (GPU max pooling)
 - [ ] Add unit tests
 - [ ] Create example workflow
 

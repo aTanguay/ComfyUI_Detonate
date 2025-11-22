@@ -15,7 +15,7 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
 
-## Implemented Nodes (4/8 Priority 1)
+## Implemented Nodes (8/8 Priority 1 ✅ COMPLETE!)
 
 ### Channel Operations
 - **Premultiply** - Convert straight alpha to premultiplied alpha
@@ -33,6 +33,30 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
   - Separable convolution for performance
   - Optional alpha channel blurring
   - GPU-accelerated
+
+### Color Operations
+- **ColorCorrect** - Quick color adjustments
+  - Saturation, contrast, gamma, gain, offset
+  - Perfect for matching composite layers
+- **Grade** - Professional lift/gamma/gain color correction
+  - Complete Nuke Grade formula
+  - Blackpoint/whitepoint, lift, gamma, gain, offset, multiply
+  - Industry-standard film scan grading
+
+### Transform
+- **Transform** - 2D geometric transformations
+  - Translate, rotate, scale, skew
+  - Adjustable center point
+  - Filter quality options (nearest, bilinear, bicubic)
+  - Edge modes (black, clamp, repeat)
+
+### Matte Operations
+- **Erode** - Contract mattes (morphological erosion)
+  - Remove noise and fringe pixels
+  - Selectable channels (RGBA, RGB, Alpha)
+- **Dilate** - Expand mattes (morphological dilation)
+  - Fill holes and expand coverage
+  - Selectable channels (RGBA, RGB, Alpha)
 
 ## Installation
 
@@ -76,12 +100,15 @@ LoadImage (background) → Premultiply ───┘
 LoadImage → Shuffle (red → alpha) → Premultiply → Merge
 ```
 
-## Coming Soon (Priority 1)
+## Coming Soon (Priority 2)
 
-- **Transform** - 2D transforms (translate, rotate, scale, skew)
-- **ColorCorrect** - Saturation, contrast, gamma adjustments
-- **Grade** - Professional lift/gamma/gain color correction
-- **Erode/Dilate** - Morphological matte operations
+- **ChromaKeyer** - Green/blue screen keying with spill suppression
+- **LumaKeyer** - Luminance-based key generation
+- **MatteControl** - All-in-one matte refinement (contract, expand, blur, gamma)
+- **Clamp** - Constrain values to min/max range
+- **Saturation** - Direct saturation control
+- **Invert** - Invert color/channel values
+- **ChannelCopy** - Copy channels between streams
 
 ## Technical Details
 
@@ -120,5 +147,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Active development - Priority 1 nodes in progress (4/8 complete)
+**Status**: Priority 1 COMPLETE ✅ (8/8 nodes) - Ready for production use!
 **Version**: 0.1.0-alpha

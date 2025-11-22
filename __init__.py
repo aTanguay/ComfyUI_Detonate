@@ -69,13 +69,12 @@ try:
 except ImportError as e:
     print(f"Warning: Could not load Erode/Dilate nodes: {e}")
 
-# Transform node - not yet implemented
-# try:
-#     from .nodes.transform.transform import DetonateTransform
-#     NODE_CLASS_MAPPINGS["DetonateTransform"] = DetonateTransform
-#     NODE_DISPLAY_NAME_MAPPINGS["DetonateTransform"] = "Transform (Detonate)"
-# except ImportError as e:
-#     print(f"Warning: Could not load Transform node: {e}")
+try:
+    from .nodes.transform.transform import DetonateTransform
+    NODE_CLASS_MAPPINGS["DetonateTransform"] = DetonateTransform
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateTransform"] = "Transform (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Transform node: {e}")
 
 
 # Export for ComfyUI
