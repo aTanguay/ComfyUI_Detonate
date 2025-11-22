@@ -60,18 +60,18 @@ This is a working task list for tracking implementation progress. Check off item
 
 ## Phase 2: Core Compositing Nodes (Priority 1)
 
-### 1. Merge Node
-- [ ] Implement base Merge node class
-- [ ] Add "Over" blend mode (A over B)
-- [ ] Add "Under" blend mode
-- [ ] Add "Plus" blend mode (additive)
-- [ ] Add "Screen" blend mode
-- [ ] Add "Multiply" blend mode
-- [ ] Add "Stencil" blend mode
-- [ ] Add "Mask" blend mode
-- [ ] Add "Atop" blend mode
-- [ ] Add mix/opacity control
-- [ ] Handle alpha channels correctly
+### 1. Merge Node ✅
+- [x] Implement base Merge node class
+- [x] Add "Over" blend mode (A over B)
+- [x] Add "Under" blend mode
+- [x] Add "Plus" blend mode (additive)
+- [x] Add "Screen" blend mode
+- [x] Add "Multiply" blend mode
+- [x] Add "Stencil" blend mode
+- [x] Add "Mask" blend mode
+- [x] Add "Atop" blend mode
+- [x] Add mix/opacity control
+- [x] Handle alpha channels correctly
 - [ ] Add unit tests for Merge node
 - [ ] Create example workflow
 
@@ -88,13 +88,13 @@ This is a working task list for tracking implementation progress. Check off item
 - [ ] Add unit tests for Transform node
 - [ ] Create example workflow
 
-### 3. Blur Node
-- [ ] Implement base Blur node class
-- [ ] Add Gaussian blur algorithm
-- [ ] Add separate X/Y blur size controls
-- [ ] Add quality/iteration controls
-- [ ] Optimize for performance (GPU acceleration)
-- [ ] Handle alpha channels correctly
+### 3. Blur Node ✅
+- [x] Implement base Blur node class
+- [x] Add Gaussian blur algorithm
+- [x] Add separate X/Y blur size controls
+- [x] Add quality/iteration controls
+- [x] Optimize for performance (GPU acceleration)
+- [x] Handle alpha channels correctly
 - [ ] Add unit tests for Blur node
 - [ ] Create example workflow
 
@@ -110,14 +110,14 @@ This is a working task list for tracking implementation progress. Check off item
 - [ ] Add unit tests for Grade node
 - [ ] Create example workflow
 
-### 5. Premultiply / Unpremultiply Nodes
-- [ ] Implement Premultiply node
-  - [ ] Multiply RGB by alpha
-  - [ ] Handle edge cases (alpha = 0)
-- [ ] Implement Unpremultiply node
-  - [ ] Divide RGB by alpha
-  - [ ] Handle division by zero
-  - [ ] Add clipping options
+### 5. Premultiply / Unpremultiply Nodes ✅
+- [x] Implement Premultiply node
+  - [x] Multiply RGB by alpha
+  - [x] Handle edge cases (alpha = 0)
+- [x] Implement Unpremultiply node
+  - [x] Divide RGB by alpha
+  - [x] Handle division by zero
+  - [x] Add clipping options
 - [ ] Add unit tests
 - [ ] Create example workflow
 
@@ -147,12 +147,12 @@ This is a working task list for tracking implementation progress. Check off item
 - [ ] Add unit tests
 - [ ] Create example workflow
 
-### 8. Shuffle Node
-- [ ] Implement base Shuffle node class
-- [ ] Add channel selection (R, G, B, A, 0, 1)
-- [ ] Add output channel mapping
-- [ ] Support multi-channel operations
-- [ ] Handle missing alpha channels
+### 8. Shuffle Node ✅
+- [x] Implement base Shuffle node class
+- [x] Add channel selection (R, G, B, A, 0, 1)
+- [x] Add output channel mapping
+- [x] Support multi-channel operations
+- [x] Handle missing alpha channels
 - [ ] Add unit tests for Shuffle node
 - [ ] Create example workflow
 
