@@ -31,7 +31,7 @@ Perfect for:
 **Installation:**
 ```bash
 cd ComfyUI/custom_nodes
-git clone -b v0.1.0 https://github.com/aTanguay/ComfyUI_Detonate.git
+git clone https://github.com/aTanguay/ComfyUI_Detonate.git
 cd ComfyUI_Detonate
 pip install -r requirements.txt
 ```
@@ -126,32 +126,12 @@ Install the latest stable release with proven, tested nodes:
 cd ComfyUI/custom_nodes
 git clone https://github.com/aTanguay/ComfyUI_Detonate.git
 cd ComfyUI_Detonate
-git checkout v0.1.0  # Or latest release tag
 pip install -r requirements.txt
 ```
 
-### Option 2: Specific Tier
-Install a specific tier release:
+The repository contains the latest stable v0.1.0 release (Tier 1: The Basics).
 
-```bash
-# Tier 1: The Basics
-git checkout v0.1.0
-
-# Tier 2: Intermediate (when available)
-git checkout v0.2.0
-
-# Tier 3: Advanced (when available)
-git checkout v0.3.0
-```
-
-### Option 3: Development Branch
-Get the latest features (may be unstable):
-
-```bash
-git clone https://github.com/aTanguay/ComfyUI_Detonate.git
-cd ComfyUI_Detonate
-pip install -r requirements.txt
-```
+Future tiers will be released as separate branches or tags as development continues.
 
 ---
 
@@ -181,23 +161,15 @@ scipy>=1.7.0          # For advanced algorithms (Tier 3)
 
 ## Upgrade Path
 
-### From Tier 1 to Tier 2
-```bash
-cd ComfyUI/custom_nodes/ComfyUI_Detonate
-git fetch --tags
-git checkout v0.2.0
-pip install -r requirements.txt
-```
-Restart ComfyUI to load new nodes.
+When new tiers are released, you can upgrade by pulling the latest changes:
 
-### From Tier 2 to Tier 3
 ```bash
 cd ComfyUI/custom_nodes/ComfyUI_Detonate
-git fetch --tags
-git checkout v0.3.0
-pip install -r requirements.txt
+git pull
+pip install -r requirements.txt --upgrade
 ```
-Restart ComfyUI to load new nodes.
+
+Then restart ComfyUI to load the new nodes.
 
 ---
 
