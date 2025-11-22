@@ -1554,6 +1554,630 @@ Return as grayscale matte
 
 ---
 
-**Document Version:** 1.2
+## Priority Tier 3: Effects & Color (Production Tools)
+
+### 1. Glow Node (Luminous Effects)
+
+**Nuke:** Glow | **Natron:** Glow (based on Bloom)
+**Category:** `detonate/filter`
+
+#### Purpose
+Add luminous glow effect to bright areas of an image. Essential for light effects, magic spells, UI elements, energy effects, and highlight enhancement.
+
+#### Core Behavior
+- Extract bright pixels above threshold
+- Apply multi-scale blur (geometric progression)
+- Composite glowing result back onto original
+- Preserve original brightness while adding bloom
+
+#### Algorithm (Improved Over Nuke/Natron)
+
+**Standard Approach:**
+```
+1. Threshold image to isolate bright pixels
+   mask = max(0, (luminance - threshold) / (1 - threshold))
+
+2. Multi-scale blur (geometric progression):
+   For i in range(bloom_iterations):
+       blur_size = size * (ratio ^ i)
+       blurred_layer = gaussian_blur(masked_image, blur_size)
+       accumulator += blurred_layer * (1 / bloom_iterations)
+
+3. Composite:
+   result = original + (glow_accumulator * intensity)
+```
+
+**Detonate Improvements:**
+- **Adaptive threshold**: Automatically adjust based on image brightness
+- **Blur falloff**: Exponential falloff for more natural glow
+- **Saturation boost**: Slightly boost saturation in glow for more vibrant results
+- **Edge preservation**: Optional mask to limit glow to specific areas
+
+#### Parameters
+- **size:** Glow radius (0-100, default 10)
+- **threshold:** Brightness threshold (0-1, default 0.7)
+  - Only pixels brighter than this contribute to glow
+- **intensity:** Glow strength multiplier (0-5, default 1.0)
+- **iterations:** Number of blur passes (1-10, default 5)
+  - More iterations = smoother, more expensive glow
+- **ratio:** Blur size progression ratio (1.0-3.0, default 2.0)
+  - Higher = more spread-out glow
+- **saturation_boost:** Boost glow saturation (0-2, default 1.1)
+  - Makes glow more vibrant
+- **mask:** Optional mask input to limit glow regions
+
+#### Edge Cases
+- Very dark images (threshold too high): Return original
+- Extreme size values: Clamp to reasonable max (200 pixels)
+- HDR values > 1.0: Handle correctly, don't clamp before glow
+
+#### Use Cases
+1. **Light rays and glows** - Sunlight through windows
+2. **Magic effects** - Spell casting, energy blasts
+3. **UI elements** - Glowing buttons, holograms
+4. **Automotive** - Headlight bloom
+5. **Sci-fi** - Laser beams, energy weapons
+
+#### References
+- [Nuke Glow](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/glow.html)
+- [Natron Bloom (CImg)](https://natron.readthedocs.io/en/master/plugins/net.sf.cimg.CImgBloom.html)
+- Masaki Kawase, "Practical Implementation of High Dynamic Range Rendering", GDC 2004
+
+---
+
+### 2. Defocus Node (Lens-Style Blur)
+
+**Nuke:** Defocus | **Fusion:** SoftGlow
+**Category:** `detonate/filter`
+
+#### Purpose
+Simulate realistic lens defocus (out-of-focus blur) with bokeh effects. Different from Gaussian blur - mimics actual camera lens characteristics.
+
+#### Core Behavior
+- Circular or shaped bokeh kernel
+- Adjustable defocus amount
+- Optional depth map input (for basic DOF)
+- Preserves edge characteristics better than Gaussian
+
+#### Algorithm
+
+**Simple Defocus (No Depth):**
+```
+1. Create circular bokeh kernel:
+   kernel = circular_disk(radius=size)
+   OR
+   kernel = hexagonal_aperture(radius=size, blades=6)
+
+2. Convolve image with kernel:
+   result = convolve2d(image, kernel)
+
+3. Normalize to preserve brightness
+```
+
+**Depth-Aware Defocus (Optional):**
+```
+If depth_map provided:
+    focus_distance = user_specified
+
+    For each pixel:
+        depth_diff = abs(depth_map[pixel] - focus_distance)
+        blur_amount = depth_diff * defocus_multiplier
+        apply blur_amount to this pixel region
+```
+
+#### Parameters
+- **size:** Defocus radius (0-100, default 5)
+- **bokeh_shape:** Kernel shape
+  - "circular" (default) - Smooth disk
+  - "hexagonal" - 6-blade aperture
+  - "octagonal" - 8-blade aperture
+- **quality:** Sampling quality (1-5, default 3)
+  - Higher = slower but smoother
+- **depth_map:** Optional depth input (IMAGE)
+- **focus_distance:** Z-depth focus point (0-1, default 0.5)
+  - Only used if depth_map connected
+- **aspect_ratio:** Bokeh aspect ratio (0.1-10, default 1.0)
+  - Create anamorphic/oval bokeh
+
+#### Detonate Improvements
+- **Multiple bokeh shapes**: Not just circular
+- **Aspect ratio control**: Anamorphic lens simulation
+- **Quality presets**: Fast/Medium/High for user convenience
+
+#### Use Cases
+1. **Background defocus** - Isolate subject
+2. **Cinematic look** - Shallow depth of field
+3. **Lens simulation** - Match real camera footage
+4. **Soft focus** - Beauty/glamour effects
+
+---
+
+### 3. Sharpen Node (Detail Enhancement)
+
+**Nuke:** Sharpen | **Fusion:** Sharpen
+**Category:** `detonate/filter`
+
+#### Purpose
+Enhance edge detail and recover sharpness from soft images using unsharp mask technique.
+
+#### Algorithm (Unsharp Mask - Industry Standard)
+
+```
+1. Create blurred version:
+   blurred = gaussian_blur(image, radius)
+
+2. Extract high-frequency detail:
+   detail = image - blurred
+
+3. Add detail back with multiplier:
+   sharpened = image + (detail * amount)
+
+4. Optional threshold (avoid noise amplification):
+   If abs(detail) < threshold:
+       sharpened = image  # Don't sharpen subtle areas
+```
+
+#### Parameters
+- **size:** Blur radius for detection (0.5-5, default 1.0)
+  - Smaller = sharpen fine details
+  - Larger = sharpen broader edges
+- **amount:** Sharpening intensity (0-5, default 1.0)
+  - 0 = no effect, 1 = normal, >1 = aggressive
+- **threshold:** Noise suppression (0-0.5, default 0.0)
+  - Avoid sharpening noise/grain
+- **channels:** Which channels to sharpen (rgb, rgba, luminance)
+- **clamp:** Clamp output to 0-1 (default False)
+  - Useful for avoiding overshoots
+
+#### Detonate Improvements
+- **Luminance-only mode**: Sharpen detail without color artifacts
+- **Threshold control**: Industry-standard feature often missing
+- **Preview mode**: Show only the detail being added
+
+#### Use Cases
+1. **Recover soft renders** - Fix over-blurred CG
+2. **Enhance textures** - Bring out detail in materials
+3. **Upscaling prep** - Pre-sharpen before scaling
+4. **Match footage** - Match sharp camera plates
+
+#### References
+- [Nuke Sharpen](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/sharpen.html)
+- [Unsharp Mask Wikipedia](https://en.wikipedia.org/wiki/Unsharp_masking)
+- [Cambridge in Colour: Unsharp Mask](https://www.cambridgeincolour.com/tutorials/unsharp-mask.htm)
+
+---
+
+### 4. ZDefocus Node (Depth-Based DOF)
+
+**Nuke:** ZDefocus
+**Category:** `detonate/filter`
+
+#### Purpose
+Realistic depth-of-field simulation using Z-depth channel from CG renders. More accurate than simple Defocus - uses actual scene depth information.
+
+#### Core Behavior (Nuke Algorithm)
+- Split image into depth layers
+- Apply different blur amounts per layer based on distance from focus
+- Composite layers back-to-front preserving depth order
+- Use FFT for large kernel convolutions
+
+#### Algorithm
+
+```
+1. Read depth channel (usually from EXR):
+   depth = image[:, :, depth_channel]
+
+2. Calculate blur amount per pixel:
+   focus_diff = abs(depth - focus_distance)
+   blur_radius = focus_diff * max_blur_size * focal_range
+
+3. Layer-based processing:
+   - Quantize depth into discrete layers (e.g., 10-50 layers)
+   - Each layer gets uniform blur size
+   - Blur each layer with calculated radius
+
+4. Composite layers back-to-front:
+   result = background
+   For layer in sorted_layers (back to front):
+       result = composite(layer, result, layer_alpha)
+```
+
+#### Parameters
+- **depth_channel:** Which channel contains depth (default "depth.Z")
+- **focus_distance:** Z-depth to keep in focus (0-∞, default 5.0)
+- **focal_range:** Controls DOF falloff (0.1-10, default 1.0)
+  - Smaller = sharper falloff (shallow DOF)
+  - Larger = gradual falloff (deep DOF)
+- **max_blur:** Maximum blur size (0-100, default 20)
+- **num_layers:** Depth layer count (5-100, default 20)
+  - More layers = smoother but slower
+  - Fewer layers = faster but may show banding
+- **bokeh_shape:** Kernel shape (circular, hexagonal, octagonal)
+
+#### Detonate Improvements
+- **Auto-detect depth channel**: Search for common names (depth.Z, Z, depth)
+- **Depth normalization**: Auto-normalize depth to 0-1 if needed
+- **Bokeh shape control**: Not just circular blur
+- **Quality presets**: Low/Medium/High layer counts
+
+#### Use Cases
+1. **CG depth-of-field** - Add DOF to renders without re-rendering
+2. **Focus pulling** - Animate focus distance for rack focus effects
+3. **Miniature faking** - Tilt-shift effect using depth
+4. **Atmospheric depth** - Emphasize foreground/background separation
+
+#### References
+- [Nuke ZDefocus](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/zdefocus.html)
+- [Simulating Depth-of-Field Blurring (Nuke)](https://learn.foundry.com/nuke/content/comp_environment/filters/applying_blurs.html)
+- [Photography for Compositing - Calculating Real Defocus](https://jianyu.blog/photography_for_compositing_part_5_calculating_real_defocus_in_nuke/)
+
+---
+
+### 5. ZMerge Node (Depth Compositing)
+
+**Nuke:** ZMerge
+**Category:** `detonate/compositing`
+
+#### Purpose
+Composite multiple CG layers using Z-depth information. Automatically handles occlusion based on which pixels are closer to camera.
+
+#### Core Behavior
+- Compare depth values pixel-by-pixel
+- Closer pixels (smaller Z) win
+- Essential for compositing separate CG render layers
+
+#### Algorithm
+
+```
+1. Read depth channels from both inputs:
+   depth_A = imageA[:, :, depth_channel]
+   depth_B = imageB[:, :, depth_channel]
+
+2. Create selection mask:
+   # Smaller depth = closer to camera
+   mask_A = (depth_A < depth_B).float()
+   mask_B = 1.0 - mask_A
+
+3. Composite based on depth:
+   result_RGB = imageA_RGB * mask_A + imageB_RGB * mask_B
+   result_depth = torch.minimum(depth_A, depth_B)
+   result_alpha = imageA_alpha * mask_A + imageB_alpha * mask_B
+```
+
+#### Parameters
+- **depth_channel_A:** Depth channel for input A (default "depth.Z")
+- **depth_channel_B:** Depth channel for input B (default "depth.Z")
+- **depth_tolerance:** Epsilon for depth comparison (default 0.001)
+  - Handles floating-point precision issues
+- **antialias:** Edge antialiasing (default True)
+  - Smooth transitions at depth boundaries
+- **output_depth:** Include depth in output (default True)
+
+#### Detonate Improvements
+- **Auto-detect depth channels**: Find depth automatically
+- **Edge antialiasing**: Smooth hard depth edges (Nuke ZMerge has issues here)
+- **Depth visualization mode**: Preview depth buffer
+- **Multiple input support**: Composite 3+ layers in one node (future enhancement)
+
+#### Use Cases
+1. **CG layer compositing** - Combine character + environment renders
+2. **Separate pass compositing** - Merge lighting passes with correct occlusion
+3. **Interactive object compositing** - Foreground/background automatic sorting
+4. **Render layer optimization** - Render heavy objects separately, composite by depth
+
+#### References
+- [Nuke ZMerge](https://learn.foundry.com/nuke/content/reference_guide/merge_nodes/zmerge.html)
+- [Deep Compositing in VFX (PDF)](http://www.diva-portal.org/smash/get/diva2:1325032/FULLTEXT01.pdf)
+- [The Art of Deep Compositing (fxguide)](https://www.fxguide.com/fxfeatured/the-art-of-deep-compositing/)
+
+---
+
+### 6. ColorCurves Node (Professional Grading)
+
+**Nuke:** ColorLookup | **Natron:** ColorLookup
+**Category:** `detonate/color`
+
+#### Purpose
+Professional color grading using Bezier curves. Industry-standard tool for precise tonal control across highlights, midtones, and shadows.
+
+#### Core Behavior
+- Adjustable Bezier curves for Master, R, G, B channels
+- Curve points define input→output mapping
+- Smooth interpolation between points
+- Stack multiple curve adjustments
+
+#### Algorithm
+
+```
+1. Define curves (one per channel: Master, R, G, B):
+   curve_points = [(0, 0), (0.5, 0.5), (1, 1)]  # Default linear
+
+2. Interpolate curve using cubic Bezier:
+   For each input value x:
+       output = bezier_interpolate(curve_points, x)
+
+3. Apply curves in order:
+   # Apply master curve to all channels
+   temp = apply_curve(image, master_curve)
+
+   # Apply per-channel curves
+   result[:, :, 0] = apply_curve(temp[:, :, 0], red_curve)
+   result[:, :, 1] = apply_curve(temp[:, :, 1], green_curve)
+   result[:, :, 2] = apply_curve(temp[:, :, 2], blue_curve)
+```
+
+#### Parameters
+- **master_curve:** Points list [(x, y), ...] for master curve
+  - Affects all channels simultaneously
+- **red_curve:** Points for red channel
+- **green_curve:** Points for green channel
+- **blue_curve:** Points for blue channel
+- **luma_curve:** Optional luminance-only curve
+- **interpolation:** Curve interpolation method
+  - "cubic" (default) - Smooth Bezier
+  - "linear" - Sharp corners
+  - "monotonic" - Prevent overshoot
+
+#### Detonate Improvements
+- **Curve presets**: S-curve, contrast boost, film look, etc.
+- **Visual curve editor** (if ComfyUI supports custom widgets)
+- **Luma curve**: Adjust brightness without color shift
+- **Before/after preview**: Toggle to see effect
+- **Load/save curves**: Import curves from LUTs or other tools (future)
+
+#### Curve Presets (Smart Defaults)
+1. **Linear**: `[(0,0), (1,1)]` - No change
+2. **S-Curve Contrast**: `[(0,0), (0.25,0.2), (0.75,0.8), (1,1)]` - Boost midtone contrast
+3. **Lift Shadows**: `[(0,0.1), (0.5,0.5), (1,1)]` - Brighten shadows
+4. **Crush Blacks**: `[(0,0), (0.1,0), (1,1)]` - Deepen blacks
+5. **Filmic**: `[(0,0.02), (0.18,0.18), (0.9,0.95), (1,0.98)]` - Film-like rolloff
+
+#### Use Cases
+1. **Contrast enhancement** - S-curve for punch
+2. **Shadow/highlight recovery** - Lift or crush specific ranges
+3. **Color grading looks** - Film emulation, stylized grades
+4. **Matching footage** - Match different camera sources
+5. **Selective tonal control** - Precise highlights/mids/shadows adjustment
+
+#### References
+- [Natron ColorLookup](https://natron.readthedocs.io/en/master/plugins/net.sf.openfx.ColorLookupPlugin.html)
+- [Working with Color (Natron)](https://natron.readthedocs.io/en/rb-2.5/guide/compositing-color.html)
+- [Blender RGB Curves](https://docs.blender.org/manual/en/latest/render/shader_nodes/color/rgb_curves.html)
+
+---
+
+### 7. Ramp Node (Gradient Generator)
+
+**Nuke:** Ramp | **Fusion:** FastNoise (Gradient)
+**Category:** `detonate/generator`
+
+#### Purpose
+Generate procedural gradients for masks, lighting effects, and backgrounds. Essential utility for creating smooth transitions and falloffs.
+
+#### Gradient Types
+
+**Linear:**
+```
+gradient = (position - start_point) · direction_vector
+normalized = (gradient - min) / (max - min)
+```
+
+**Radial:**
+```
+center_distance = length(position - center_point)
+normalized = center_distance / max_radius
+```
+
+**Angle:**
+```
+angle = atan2(position.y - center.y, position.x - center.x)
+normalized = (angle + π) / (2π)  # Map -π to π → 0 to 1
+```
+
+**Box:**
+```
+# Distance to edge from center
+distance = max(abs(position.x - center.x), abs(position.y - center.y))
+normalized = distance / max_distance
+```
+
+#### Parameters
+- **type:** Gradient type (linear, radial, angle, box)
+- **width, height:** Output dimensions
+- **color_start:** Starting color (RGBA, default black)
+- **color_end:** Ending color (RGBA, default white)
+- **start_point:** Gradient start position (0-1, 0-1)
+- **end_point:** Gradient end position (for linear)
+- **center_point:** Center position (for radial/angle/box)
+- **falloff:** Gradient curve
+  - "linear" - Uniform
+  - "smooth" - Ease in/out
+  - "exponential" - Sharp near edges
+  - "logarithmic" - Sharp in center
+
+#### Detonate Improvements
+- **Falloff curves**: More control than basic linear
+- **Color gradients**: Not just grayscale, full RGBA support
+- **HDR support**: Colors can exceed 1.0
+- **Noise overlay**: Optional noise for organic gradients (future)
+
+#### Use Cases
+1. **Vignettes** - Radial gradient for edge darkening
+2. **Lighting ramps** - Simulate directional light falloff
+3. **Mask generation** - Soft falloff masks for effects
+4. **Backgrounds** - Simple gradient backgrounds
+5. **Displacement maps** - Drive other effects with gradients
+
+---
+
+### 8. Noise Node (Procedural Textures)
+
+**Nuke:** Noise (removed in modern versions) | **Blender:** Noise Texture
+**Category:** `detonate/generator`
+
+#### Purpose
+Generate procedural Perlin/Simplex noise for textures, displacement, grain, and breakup patterns.
+
+#### Noise Types
+
+**Perlin Noise:**
+```
+# Classic gradient noise
+value = perlin(position * scale + offset, octaves, persistence)
+```
+
+**Simplex Noise:**
+```
+# Improved Perlin with better performance
+value = simplex(position * scale + offset, octaves, persistence)
+```
+
+**Cellular/Worley Noise:**
+```
+# Voronoi-style cellular patterns
+value = worley(position * scale, distance_metric)
+```
+
+#### Algorithm (Perlin)
+
+```
+1. Generate base octave:
+   noise = perlin_2d(x * scale, y * scale)
+
+2. Add higher frequency octaves (fractal):
+   amplitude = 1.0
+   frequency = 1.0
+
+   For i in range(octaves):
+       noise += perlin_2d(x * scale * frequency, y * scale * frequency) * amplitude
+       amplitude *= persistence  # Each octave contributes less
+       frequency *= lacunarity   # Each octave has higher frequency
+
+3. Normalize to 0-1 range
+```
+
+#### Parameters
+- **width, height:** Output dimensions
+- **noise_type:** Type of noise (perlin, simplex, cellular, white)
+- **scale:** Noise frequency (0.1-10, default 1.0)
+  - Smaller = larger features
+  - Larger = finer detail
+- **octaves:** Fractal detail layers (1-8, default 4)
+  - More octaves = more detail
+- **persistence:** Octave amplitude falloff (0-1, default 0.5)
+  - Higher = rougher noise
+- **lacunarity:** Octave frequency multiplier (1-4, default 2.0)
+- **seed:** Random seed for reproducibility
+- **output_mode:** Output format
+  - "grayscale" - Single channel noise in RGB
+  - "rgb" - Independent noise per channel (color noise)
+  - "normal_map" - Convert to normal map
+
+#### Detonate Improvements
+- **Multiple noise types**: Not just one algorithm
+- **Tileable option**: Seamless tiling for textures
+- **Animated noise**: Time parameter for animated textures
+- **Normal map output**: Direct conversion to normal maps
+- **HDR range**: Output can exceed 0-1
+
+#### Use Cases
+1. **Texture generation** - Procedural cloud, marble, wood textures
+2. **Displacement** - Drive deformations with noise
+3. **Grain simulation** - Add film grain or sensor noise
+4. **Matte breakup** - Make clean edges more organic
+5. **Turbulence** - Distortion/warp maps
+
+#### References
+- [Perlin Noise (Wikipedia)](https://en.wikipedia.org/wiki/Perlin_noise)
+- [Simplex Noise (Wikipedia)](https://en.wikipedia.org/wiki/Simplex_noise)
+- [Blender Noise Texture](https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/noise.html)
+
+---
+
+## Testing & Validation (Tier 3)
+
+All Tier 3 nodes should pass these validation tests:
+
+1. **Glow:**
+   - Verify threshold correctly isolates bright pixels
+   - Test multi-scale blur progression
+   - Compare to Nuke Glow output
+   - Test HDR glow (values > 1.0)
+
+2. **Defocus:**
+   - Verify circular bokeh kernel
+   - Test different bokeh shapes
+   - Compare to Nuke Defocus
+   - Test with/without depth map
+
+3. **Sharpen:**
+   - Verify unsharp mask formula
+   - Test threshold noise suppression
+   - Compare to Photoshop Unsharp Mask
+   - Test amount scaling
+
+4. **ZDefocus:**
+   - Load EXR with depth channel
+   - Verify layer-based processing
+   - Test focus distance animation
+   - Compare to Nuke ZDefocus
+
+5. **ZMerge:**
+   - Composite two depth images
+   - Verify closer pixels win
+   - Test edge antialiasing
+   - Compare to Nuke ZMerge
+
+6. **ColorCurves:**
+   - Test curve point interpolation
+   - Verify master curve affects all channels
+   - Test S-curve contrast boost
+   - Load curve presets
+
+7. **Ramp:**
+   - Test all gradient types
+   - Verify smooth falloffs
+   - Test HDR color support
+   - Check tiling (if implemented)
+
+8. **Noise:**
+   - Test all noise types
+   - Verify octave stacking
+   - Test reproducibility (same seed = same noise)
+   - Compare to Blender noise output
+
+---
+
+## Sources & References (Tier 3)
+
+### Nuke Documentation
+- [Glow](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/glow.html)
+- [Defocus](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/defocus.html)
+- [Sharpen](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/sharpen.html)
+- [ZDefocus](https://learn.foundry.com/nuke/content/reference_guide/filter_nodes/zdefocus.html)
+- [ZMerge](https://learn.foundry.com/nuke/content/reference_guide/merge_nodes/zmerge.html)
+- [Simulating Depth-of-Field](https://learn.foundry.com/nuke/content/comp_environment/filters/applying_blurs.html)
+
+### Natron Documentation
+- [Glow](https://natron.readthedocs.io/en/master/plugins/fr.inria.Glow.html)
+- [Bloom (CImg)](https://natron.readthedocs.io/en/master/plugins/net.sf.cimg.CImgBloom.html)
+- [ColorLookup](https://natron.readthedocs.io/en/master/plugins/net.sf.openfx.ColorLookupPlugin.html)
+- [Working with Color](https://natron.readthedocs.io/en/rb-2.5/guide/compositing-color.html)
+
+### Technical Resources
+- [Unsharp Mask Wikipedia](https://en.wikipedia.org/wiki/Unsharp_masking)
+- [Cambridge in Colour: Unsharp Mask Tutorial](https://www.cambridgeincolour.com/tutorials/unsharp-mask.htm)
+- [Perlin Noise](https://en.wikipedia.org/wiki/Perlin_noise)
+- [Simplex Noise](https://en.wikipedia.org/wiki/Simplex_noise)
+- [fxguide: The Art of Deep Compositing](https://www.fxguide.com/fxfeatured/the-art-of-deep-compositing/)
+
+### Implementation References
+- Masaki Kawase, "Practical Implementation of High Dynamic Range Rendering", GDC 2004
+- Ken Perlin, "Improving Noise", SIGGRAPH 2002
+- [Photography for Compositing - Calculating Real Defocus in Nuke](https://jianyu.blog/photography_for_compositing_part_5_calculating_real_defocus_in_nuke/)
+
+---
+
+**Document Version:** 1.3
 **Last Updated:** 2025-01-22
-**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Added
+**Status:** Tier 1 Complete | Tier 2 Complete | Cryptomatte Complete | Tier 3 Documented
