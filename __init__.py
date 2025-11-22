@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -144,6 +144,64 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateCryptomatteExtract"] = "Cryptomatte Extract (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load Cryptomatte Extract node: {e}")
+
+
+# Tier 3 Nodes - Effects & Color ✓
+try:
+    from .nodes.filter.glow import DetonateGlow
+    NODE_CLASS_MAPPINGS["DetonateGlow"] = DetonateGlow
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateGlow"] = "Glow (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Glow node: {e}")
+
+try:
+    from .nodes.filter.sharpen import DetonateSharpen
+    NODE_CLASS_MAPPINGS["DetonateSharpen"] = DetonateSharpen
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateSharpen"] = "Sharpen (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Sharpen node: {e}")
+
+try:
+    from .nodes.filter.defocus import DetonateDefocus
+    NODE_CLASS_MAPPINGS["DetonateDefocus"] = DetonateDefocus
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateDefocus"] = "Defocus (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Defocus node: {e}")
+
+try:
+    from .nodes.filter.zdefocus import DetonateZDefocus
+    NODE_CLASS_MAPPINGS["DetonateZDefocus"] = DetonateZDefocus
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateZDefocus"] = "ZDefocus (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load ZDefocus node: {e}")
+
+try:
+    from .nodes.compositing.zmerge import DetonateZMerge
+    NODE_CLASS_MAPPINGS["DetonateZMerge"] = DetonateZMerge
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateZMerge"] = "ZMerge (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load ZMerge node: {e}")
+
+try:
+    from .nodes.color.colorcurves import DetonateColorCurves
+    NODE_CLASS_MAPPINGS["DetonateColorCurves"] = DetonateColorCurves
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateColorCurves"] = "ColorCurves (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load ColorCurves node: {e}")
+
+try:
+    from .nodes.generator.ramp import DetonateRamp
+    NODE_CLASS_MAPPINGS["DetonateRamp"] = DetonateRamp
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateRamp"] = "Ramp (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Ramp node: {e}")
+
+try:
+    from .nodes.generator.noise import DetonateNoise
+    NODE_CLASS_MAPPINGS["DetonateNoise"] = DetonateNoise
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateNoise"] = "Noise (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load Noise node: {e}")
 
 
 # Export for ComfyUI

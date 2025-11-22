@@ -11,7 +11,11 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
 - **Multi-channel EXR support** for CG render passes
-- **Cryptomatte ID mattes** for object/material extraction 🔥 **NEW!**
+- **Cryptomatte ID mattes** for object/material extraction
+- **Depth-based compositing** (ZDefocus, ZMerge) for CG workflows 🔥 **NEW!**
+- **Visual effects** (Glow, Defocus, Sharpen) for professional finishing 🔥 **NEW!**
+- **Professional color grading** with Bezier curves 🔥 **NEW!**
+- **Procedural generators** (Ramp, Noise) for masks and textures 🔥 **NEW!**
 - **Premultiplied alpha workflow** for accurate compositing
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
@@ -136,6 +140,62 @@ LoadEXR (beauty pass) ───────────────────�
 
 ---
 
+### ✅ Tier 3: Effects & Color (8 nodes) - COMPLETE! 🎉
+Production-essential tools for professional finishing and CG workflows.
+
+#### Visual Effects
+- **Glow** ⭐ - Multi-scale bloom with threshold control
+  - Luminous glow for bright areas
+  - Geometric blur progression (5-10 iterations)
+  - Saturation boost for vibrant glows
+  - Perfect for light rays, magic effects, UI elements
+
+- **Defocus** - Lens-style bokeh blur
+  - Circular, hexagonal, and octagonal bokeh shapes
+  - Anamorphic lens simulation (aspect ratio control)
+  - More realistic than Gaussian blur
+  - Quality presets for speed/quality tradeoff
+
+- **Sharpen** - Unsharp mask sharpening
+  - Luminance-only mode (avoid color fringing)
+  - Threshold control for noise suppression
+  - Recover detail from soft renders
+
+#### Depth-Based Tools (CG Pipeline)
+- **ZDefocus** ⭐⭐ - Depth-based depth-of-field
+  - Uses Z-depth channel from CG renders
+  - Layer-based processing for realistic DOF
+  - Auto-detect depth channels
+  - Animate focus distance for rack focus effects
+
+- **ZMerge** ⭐⭐ - Depth compositing
+  - Composite layers using Z-depth (closer pixels win)
+  - Essential for CG layer compositing
+  - Edge antialiasing (improvement over Nuke!)
+  - Auto-detect depth channels
+
+#### Professional Color Grading
+- **ColorCurves** ⭐ - Bezier curve color grading
+  - Master, Red, Green, Blue curves
+  - Built-in presets: S-curve, filmic, lift shadows, crush blacks
+  - Industry-standard tonal control
+  - HDR support
+
+#### Procedural Generators
+- **Ramp** - Gradient generator
+  - 4 types: Linear, Radial, Angle, Box
+  - Falloff curves: Linear, Smooth, Exponential, Logarithmic
+  - Full RGBA color support with HDR
+  - Perfect for vignettes, lighting ramps, masks
+
+- **Noise** - Procedural Perlin noise
+  - Fractal noise with octaves
+  - Grayscale or RGB color noise
+  - Reproducible (seed control)
+  - Perfect for textures, grain, matte breakup
+
+---
+
 ## Installation
 
 1. Clone into your ComfyUI `custom_nodes` directory:
@@ -234,5 +294,5 @@ Contributions welcome! This project aims to bring professional compositing tools
 
 ---
 
-**Status**: Tier 1 & 2 COMPLETE + Cryptomatte ✅ (18 nodes total) - Production ready with CG workflow support!
-**Version**: 0.3.0
+**Status**: Tier 1, 2 & 3 COMPLETE + Cryptomatte ✅ (26 nodes total) - Professional VFX toolkit ready!
+**Version**: 0.4.0
