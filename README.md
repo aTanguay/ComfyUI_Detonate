@@ -23,6 +23,26 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
 
+---
+
+## Installation
+
+1. Clone into your ComfyUI `custom_nodes` directory:
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/aTanguay/ComfyUI_Detonate.git
+```
+
+2. Install dependencies:
+```bash
+cd ComfyUI_Detonate
+pip install -r requirements.txt
+```
+
+3. Restart ComfyUI
+
+---
+
 ## 🎉 Version 0.8.0 - Tier 6: Professional Keying! 🎬
 
 **Essential greenscreen and brightness keying tools!**
@@ -55,24 +75,6 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
    - Ideal for simple sky replacement or quick selections
 
 **Total node count: 39 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5 + 3 Tier 6)
-
----
-
-## Installation
-
-1. Clone into your ComfyUI `custom_nodes` directory:
-```bash
-cd ComfyUI/custom_nodes
-git clone https://github.com/aTanguay/ComfyUI_Detonate.git
-```
-
-2. Install dependencies:
-```bash
-cd ComfyUI_Detonate
-pip install -r requirements.txt
-```
-
-3. Restart ComfyUI
 
 ---
 
