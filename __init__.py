@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -289,6 +289,29 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateLumaKeyerSimple"] = "LumaKeyer Simple (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load LumaKeyer nodes: {e}")
+
+
+# Bridge Tools - GenAI/Comp Integration ✓
+try:
+    from .nodes.matte.edgedefringe import DetonateEdgeDefringe
+    NODE_CLASS_MAPPINGS["DetonateEdgeDefringe"] = DetonateEdgeDefringe
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateEdgeDefringe"] = "Edge Defringe (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load EdgeDefringe node: {e}")
+
+try:
+    from .nodes.transform.displacementmap import DetonateDisplacementMap
+    NODE_CLASS_MAPPINGS["DetonateDisplacementMap"] = DetonateDisplacementMap
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateDisplacementMap"] = "Displacement Map (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load DisplacementMap node: {e}")
+
+try:
+    from .nodes.transform.gridwarp import DetonateGridWarp
+    NODE_CLASS_MAPPINGS["DetonateGridWarp"] = DetonateGridWarp
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateGridWarp"] = "GridWarp (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load GridWarp node: {e}")
 
 
 # Export for ComfyUI
