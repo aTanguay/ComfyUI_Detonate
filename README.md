@@ -8,7 +8,8 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ## Features
 
-- **Bridge tools for GenAI workflows** - Edge defringing, displacement mapping, mesh warping 🔥 **NEW v0.9.0!**
+- **AI inpainting helpers** - TriMap Generator, Seam Blender for perfect AI integration 🔥 **NEW v0.10.0!**
+- **Bridge tools for GenAI workflows** - Edge defringing, displacement mapping, mesh warping
 - **Professional keying tools** - ChromaKeyer & LumaKeyer for greenscreen workflows
 - **Interactive rotoscoping** with professional Bezier spline tools
 - **Professional-grade algorithms** based on Nuke and Fusion
@@ -80,6 +81,41 @@ If you prefer not to use git:
 - Verify numpy version is < 2.0: `pip show numpy`
 - Verify pillow version is < 11.0: `pip show pillow`
 - If needed, downgrade: `pip install "numpy<2.0" "pillow<11.0"`
+
+---
+
+## 🎉 Version 0.10.0 - Bridge Tools Round 2: AI Inpainting Perfection! 🎨
+
+**Essential tools for AI inpainting and tiled generation workflows!**
+
+### New Bridge Tools (2 Critical Nodes)
+
+**1. TriMap Generator** ⭐⭐⭐ - Perfect AI inpainting setup
+   - **Auto-generate trimaps** - White (keep), Black (remove), Gray (AI decides)
+   - **Adjustable unknown width** - Control transition zone size
+   - **Multiple modes** - Edge Distance, Threshold Only, Full Unknown
+   - **RGB preview** - See trimap regions (Green=FG, Red=BG, Blue=Unknown)
+   - **Threshold controls** - Define foreground/background certainty
+   - Essential for high-quality AI inpainting - tells AI exactly what needs work
+   - **UNIQUE:** No proper trimap generator exists in ComfyUI ecosystem
+
+**2. Seam Blender** ⭐⭐⭐ - Remove AI tiling seams
+   - **Multiple blend methods** - Feather (fast), Gradient (good), Poisson (best)
+   - **Auto-detect seams** - Find tile boundaries automatically
+   - **Manual seam placement** - JSON array for precise control
+   - **Adjustable blend width** - Control transition smoothness
+   - **Horizontal & vertical** - Handle any tiling pattern
+   - Fixes visible seams from AI tiled generation, panorama stitching
+   - **UNIQUE:** Solves specific AI tiling problem, doesn't exist elsewhere
+
+**MatteControl Highlight** ⭐⭐⭐ - Professional matte refinement (Tier 2 node)
+   - **All-in-one workflow** - Erode/Dilate + Blur + Gamma + Levels in one node
+   - **Preview modes** - See each processing stage
+   - **Proper operation order** - Industry-standard matte cleanup pipeline
+   - Replaces 4-5 node chains with a single professional control
+   - Essential daily tool for every compositor
+
+**Total node count: 44 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5 + 3 Tier 6 + 5 Bridge Tools)
 
 ---
 
