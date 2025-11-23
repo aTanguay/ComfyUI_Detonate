@@ -504,21 +504,6 @@ Essential greenscreen and brightness keying for VFX compositing!
 
 ---
 
-## Installation
-
-1. Clone into your ComfyUI `custom_nodes` directory:
-```bash
-cd ComfyUI/custom_nodes
-git clone https://github.com/aTanguay/ComfyUI_Detonate.git
-```
-
-2. Install dependencies:
-```bash
-cd ComfyUI_Detonate
-pip install -r requirements.txt
-```
-
-3. Restart ComfyUI
 
 ## Usage
 
