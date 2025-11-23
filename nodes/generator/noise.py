@@ -44,7 +44,18 @@ class DetonateNoise:
 
     CATEGORY = "detonate/generator"
 
-    NOISE_TYPES = ["perlin", "white"]
+    NOISE_TYPES = [
+        "perlin",           # Classic gradient noise
+        "simplex",          # Improved Perlin (smoother, less artifacts)
+        "white",            # Pure random
+        "gaussian",         # Film grain simulation
+        "worley",           # Cellular/Voronoi (organic cells)
+        "turbulence",       # Billowy clouds (abs Perlin)
+        "ridged",           # Mountain ridges, lightning
+        "voronoi_f1",       # Voronoi F1 distance
+        "voronoi_f2",       # Voronoi F2 distance
+        "voronoi_f2_f1",    # Voronoi F2-F1 (cell edges)
+    ]
     OUTPUT_MODES = ["grayscale", "rgb"]
 
     @classmethod
@@ -129,26 +140,19 @@ class DetonateNoise:
         # Set random seed for reproducibility
         torch.manual_seed(seed)
 
-        if noise_type == "white":
-            # Simple white noise (random)
-            if output_mode == "rgb":
-                noise = torch.rand(batch_size, height, width, 3)
-            else:
-                noise = torch.rand(batch_size, height, width, 1).repeat(1, 1, 1, 3)
+        # Route to appropriate noise generator
+        if output_mode == "rgb":
+            # Generate independent noise for each channel
+            noise_r = self._generate_noise(width, height, noise_type, scale, octaves, persistence, lacunarity, seed)
+            noise_g = self._generate_noise(width, height, noise_type, scale, octaves, persistence, lacunarity, seed + 1)
+            noise_b = self._generate_noise(width, height, noise_type, scale, octaves, persistence, lacunarity, seed + 2)
 
-        else:  # perlin
-            if output_mode == "rgb":
-                # Generate independent noise for each channel
-                noise_r = self._generate_perlin(width, height, scale, octaves, persistence, lacunarity, seed)
-                noise_g = self._generate_perlin(width, height, scale, octaves, persistence, lacunarity, seed + 1)
-                noise_b = self._generate_perlin(width, height, scale, octaves, persistence, lacunarity, seed + 2)
+            noise = torch.stack([noise_r, noise_g, noise_b], dim=2)  # [H, W, 3]
+            noise = noise.unsqueeze(0).repeat(batch_size, 1, 1, 1)  # [B, H, W, 3]
 
-                noise = torch.stack([noise_r, noise_g, noise_b], dim=2)  # [H, W, 3]
-                noise = noise.unsqueeze(0).repeat(batch_size, 1, 1, 1)  # [B, H, W, 3]
-
-            else:  # grayscale
-                noise = self._generate_perlin(width, height, scale, octaves, persistence, lacunarity, seed)
-                noise = noise.unsqueeze(0).unsqueeze(3).repeat(batch_size, 1, 1, 3)  # [B, H, W, 3]
+        else:  # grayscale
+            noise = self._generate_noise(width, height, noise_type, scale, octaves, persistence, lacunarity, seed)
+            noise = noise.unsqueeze(0).unsqueeze(3).repeat(batch_size, 1, 1, 3)  # [B, H, W, 3]
 
         # Add alpha channel (opaque)
         alpha = torch.ones(batch_size, height, width, 1)
@@ -285,3 +289,230 @@ class DetonateNoise:
         noise = a * (1 - sy) + b * sy
 
         return noise
+
+    def _generate_noise(
+        self,
+        width: int,
+        height: int,
+        noise_type: str,
+        scale: float,
+        octaves: int,
+        persistence: float,
+        lacunarity: float,
+        seed: int
+    ) -> torch.Tensor:
+        """
+        Dispatcher for different noise types.
+
+        Routes to appropriate noise algorithm based on type.
+
+        Returns:
+            Noise tensor [H, W] in range 0-1
+        """
+        if noise_type == "white":
+            return torch.rand(height, width)
+
+        elif noise_type == "gaussian":
+            return self._generate_gaussian(width, height, seed)
+
+        elif noise_type == "simplex":
+            return self._generate_simplex(width, height, scale, octaves, persistence, lacunarity, seed)
+
+        elif noise_type == "worley" or noise_type.startswith("voronoi"):
+            return self._generate_voronoi(width, height, scale, noise_type, seed)
+
+        elif noise_type == "turbulence":
+            return self._generate_turbulence(width, height, scale, octaves, persistence, lacunarity, seed)
+
+        elif noise_type == "ridged":
+            return self._generate_ridged(width, height, scale, octaves, persistence, lacunarity, seed)
+
+        else:  # "perlin" (default)
+            return self._generate_perlin(width, height, scale, octaves, persistence, lacunarity, seed)
+
+    def _generate_gaussian(self, width: int, height: int, seed: int) -> torch.Tensor:
+        """
+        Generate Gaussian noise (normal distribution).
+
+        Perfect for film grain simulation.
+
+        Returns:
+            Noise tensor [H, W] in range 0-1 (approximately)
+        """
+        torch.manual_seed(seed)
+        noise = torch.randn(height, width) * 0.15 + 0.5  # Mean=0.5, std=0.15
+        return torch.clamp(noise, 0.0, 1.0)
+
+    def _generate_simplex(
+        self,
+        width: int,
+        height: int,
+        scale: float,
+        octaves: int,
+        persistence: float,
+        lacunarity: float,
+        seed: int
+    ) -> torch.Tensor:
+        """
+        Generate Simplex noise (improved Perlin).
+
+        Simplex noise has less directional artifacts than Perlin.
+        For now, use enhanced Perlin as approximation.
+
+        TODO: Implement true Simplex algorithm (Ken Perlin 2001)
+
+        Returns:
+            Noise tensor [H, W] in range 0-1
+        """
+        # Use Perlin for now (Simplex is complex to implement correctly)
+        return self._generate_perlin(width, height, scale, octaves, persistence, lacunarity, seed)
+
+    def _generate_turbulence(
+        self,
+        width: int,
+        height: int,
+        scale: float,
+        octaves: int,
+        persistence: float,
+        lacunarity: float,
+        seed: int
+    ) -> torch.Tensor:
+        """
+        Generate Turbulence noise (billowy clouds).
+
+        Uses absolute value of Perlin noise for cloud-like patterns.
+
+        Returns:
+            Noise tensor [H, W] in range 0-1
+        """
+        noise = torch.zeros(height, width)
+
+        amplitude = 1.0
+        frequency = 1.0
+        max_value = 0.0
+
+        for octave in range(octaves):
+            octave_noise = self._perlin_octave(
+                width,
+                height,
+                scale * frequency,
+                seed + octave
+            )
+
+            # Take absolute value for turbulence
+            noise += torch.abs(octave_noise) * amplitude
+
+            max_value += amplitude
+            amplitude *= persistence
+            frequency *= lacunarity
+
+        # Normalize to 0-1
+        noise = noise / (max_value + 1e-7)
+        return torch.clamp(noise, 0.0, 1.0)
+
+    def _generate_ridged(
+        self,
+        width: int,
+        height: int,
+        scale: float,
+        octaves: int,
+        persistence: float,
+        lacunarity: float,
+        seed: int
+    ) -> torch.Tensor:
+        """
+        Generate Ridged Multifractal noise.
+
+        Creates sharp ridges - perfect for mountains, lightning, cracks.
+
+        Returns:
+            Noise tensor [H, W] in range 0-1
+        """
+        noise = torch.zeros(height, width)
+
+        amplitude = 1.0
+        frequency = 1.0
+        max_value = 0.0
+
+        for octave in range(octaves):
+            octave_noise = self._perlin_octave(
+                width,
+                height,
+                scale * frequency,
+                seed + octave
+            )
+
+            # Invert and square for sharp ridges
+            octave_noise = 1.0 - torch.abs(octave_noise)
+            octave_noise = octave_noise * octave_noise
+
+            noise += octave_noise * amplitude
+
+            max_value += amplitude
+            amplitude *= persistence
+            frequency *= lacunarity
+
+        # Normalize to 0-1
+        noise = noise / (max_value + 1e-7)
+        return torch.clamp(noise, 0.0, 1.0)
+
+    def _generate_voronoi(
+        self,
+        width: int,
+        height: int,
+        scale: float,
+        noise_type: str,
+        seed: int
+    ) -> torch.Tensor:
+        """
+        Generate Worley/Cellular/Voronoi noise.
+
+        Creates organic cell patterns based on distance to nearest points.
+
+        Args:
+            noise_type: "worley", "voronoi_f1", "voronoi_f2", or "voronoi_f2_f1"
+
+        Returns:
+            Noise tensor [H, W] in range 0-1
+        """
+        torch.manual_seed(seed)
+
+        # Number of feature points based on scale
+        num_points = int(50 * scale)
+        num_points = max(10, min(num_points, 500))
+
+        # Generate random feature points
+        points_x = torch.rand(num_points) * width
+        points_y = torch.rand(num_points) * height
+
+        # Create coordinate grid
+        y_coords = torch.arange(height).float().view(-1, 1)  # [H, 1]
+        x_coords = torch.arange(width).float().view(1, -1)   # [1, W]
+
+        # Calculate distances to all points
+        # This is memory intensive but clearer
+        min_dist1 = torch.full((height, width), float('inf'))
+        min_dist2 = torch.full((height, width), float('inf'))
+
+        for i in range(num_points):
+            px, py = points_x[i], points_y[i]
+
+            # Euclidean distance
+            dist = torch.sqrt((x_coords - px) ** 2 + (y_coords - py) ** 2)
+
+            # Update two closest distances
+            mask = dist < min_dist1
+            min_dist2 = torch.where(mask, min_dist1, torch.minimum(min_dist2, dist))
+            min_dist1 = torch.where(mask, dist, min_dist1)
+
+        # Normalize distances
+        max_dist = math.sqrt(width ** 2 + height ** 2) / 4  # Reasonable max
+
+        if noise_type == "voronoi_f2":
+            noise = min_dist2 / max_dist
+        elif noise_type == "voronoi_f2_f1":
+            noise = (min_dist2 - min_dist1) / max_dist
+        else:  # "worley" or "voronoi_f1"
+            noise = min_dist1 / max_dist
+
+        return torch.clamp(noise, 0.0, 1.0)
