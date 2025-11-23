@@ -5,7 +5,7 @@ Brings Nuke and Fusion-style compositing workflows to ComfyUI.
 """
 
 # Version info
-__version__ = "0.9.0"
+__version__ = "0.10.0"
 __author__ = "ComfyUI_Detonate Contributors"
 
 # Node mappings - will be populated as nodes are implemented
@@ -312,6 +312,21 @@ try:
     NODE_DISPLAY_NAME_MAPPINGS["DetonateGridWarp"] = "GridWarp (Detonate)"
 except ImportError as e:
     print(f"Warning: Could not load GridWarp node: {e}")
+
+# Bridge Tools Round 2 - More GenAI Integration ✓
+try:
+    from .nodes.matte.trimapgenerator import DetonateTriMapGenerator
+    NODE_CLASS_MAPPINGS["DetonateTriMapGenerator"] = DetonateTriMapGenerator
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateTriMapGenerator"] = "TriMap Generator (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load TriMapGenerator node: {e}")
+
+try:
+    from .nodes.compositing.seamblender import DetonateSeamBlender
+    NODE_CLASS_MAPPINGS["DetonateSeamBlender"] = DetonateSeamBlender
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateSeamBlender"] = "Seam Blender (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load SeamBlender node: {e}")
 
 
 # Export for ComfyUI
