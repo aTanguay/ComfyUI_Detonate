@@ -273,8 +273,11 @@ except ImportError as e:
     print(f"Warning: Could not load RotoBezier nodes: {e}")
 
 
+# Web directory for JavaScript widgets (RotoBezier, etc.)
+WEB_DIRECTORY = "./web"
+
 # Export for ComfyUI
-__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
+__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
 
 
 # Print debug info on load
