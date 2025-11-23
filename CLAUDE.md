@@ -208,15 +208,23 @@ These 8 nodes form the core toolkit:
 ### Required
 ```
 torch>=2.0.0
-numpy>=1.20.0
-pillow>=9.0.0
+numpy>=1.23.5,<2.0.0        # CRITICAL: Must be <2.0 for ComfyUI compatibility
+pillow>=9.0.0,<11.0.0       # CRITICAL: Must be <11.0 for gradio compatibility
+OpenImageIO>=2.4.0          # Multi-channel EXR support
+mmh3>=3.0.0                 # Cryptomatte support
 ```
+
+**⚠️ IMPORTANT - Windows/ComfyUI Compatibility:**
+- **numpy <2.0.0** - Many ComfyUI packages (dctorch, langchain, mediapipe, scipy, unstructured) break with numpy 2.x
+- **pillow <11.0.0** - ComfyUI's gradio UI breaks with pillow 11+
+- **DO NOT remove these version constraints** without testing on Windows with full ComfyUI environment
+- These constraints were added in 2025-01 to fix Windows installation conflicts
 
 ### Optional (for advanced features)
 ```
-opencv-python>=4.5.0
-scikit-image>=0.19.0
-scipy>=1.7.0
+opencv-python>=4.5.0        # Advanced image processing (keying, advanced filters)
+scikit-image>=0.19.0        # Scientific image processing
+scipy>=1.7.0                # Scientific computing utilities
 ```
 
 ---
@@ -257,6 +265,21 @@ scipy>=1.7.0
 - ❌ Don't use spaces in CATEGORY names
 - ✅ Use consistent naming conventions
 - ✅ Provide meaningful display names
+
+### Dependencies & Version Constraints
+- ❌ **DO NOT remove version constraints from requirements.txt** (numpy <2.0, pillow <11.0)
+- ❌ Don't upgrade numpy or pillow without testing on Windows ComfyUI environment
+- ❌ Don't use numpy 2.x specific APIs (stick to numpy 1.x APIs)
+- ❌ Don't use pillow 11+ specific features
+- ✅ Test all dependency changes on Windows before committing
+- ✅ Keep compatibility with ComfyUI ecosystem (gradio, dctorch, langchain, mediapipe)
+- ✅ Document any new required dependencies and their version constraints
+
+**Why these constraints matter:**
+- Many ComfyUI packages haven't updated to numpy 2.x (dctorch, langchain, mediapipe, scipy, unstructured)
+- ComfyUI's gradio interface breaks with pillow 11+
+- Windows has stricter dependency resolution than Linux/Mac
+- Installation failures frustrate users and reduce adoption
 
 ---
 
