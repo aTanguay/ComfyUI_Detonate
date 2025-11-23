@@ -15,7 +15,7 @@ This document provides context for future Claude sessions working on this projec
 ### Primary References
 1. **[PLANNING.md](PLANNING.md)** - Complete project vision, architecture, and roadmap
 2. **[TASKS.md](TASKS.md)** - Detailed task checklist for implementation
-3. **[NODE_PRIORITIES.md](NODE_PRIORITIES.md)** - 43 nodes prioritized by importance
+3. **[DOCS/NODE_PRIORITIES.md](DOCS/NODE_PRIORITIES.md)** - 43 nodes prioritized by importance
 
 ### Quick Reference
 - **Language:** Python 3.8+
@@ -232,7 +232,7 @@ scipy>=1.7.0                # Scientific computing utilities
 ## Workflow for New Sessions
 
 1. **Check TASKS.md** - See what's completed and what's next
-2. **Review relevant nodes in NODE_PRIORITIES.md** - Understand priority and complexity
+2. **Review relevant nodes in DOCS/NODE_PRIORITIES.md** - Understand priority and complexity
 3. **Reference PLANNING.md** - For architecture and design decisions
 4. **Implement incrementally** - One node at a time, with tests
 5. **Update TASKS.md** - Mark completed items
