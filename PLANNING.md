@@ -251,9 +251,17 @@ Output to Save Image or other nodes
 **Required:**
 ```
 torch>=2.0.0
-numpy>=1.20.0
-pillow>=9.0.0
+numpy>=1.23.5,<2.0.0       # CRITICAL: <2.0 for ComfyUI compatibility (Windows/Linux)
+pillow>=9.0.0,<11.0.0      # CRITICAL: <11.0 for gradio compatibility
+OpenImageIO>=2.4.0         # Multi-channel EXR support (CG pipelines)
+mmh3>=3.0.0                # Cryptomatte hash support
 ```
+
+**⚠️ Version Constraints - DO NOT MODIFY:**
+- **numpy <2.0.0** - Required for compatibility with ComfyUI ecosystem packages (dctorch, langchain, mediapipe, scipy, unstructured)
+- **pillow <11.0.0** - Required for compatibility with ComfyUI's gradio web interface
+- These constraints ensure Windows/Linux compatibility across typical ComfyUI installations
+- Removing these constraints will cause dependency conflicts during installation
 
 **Optional (for advanced features):**
 ```
