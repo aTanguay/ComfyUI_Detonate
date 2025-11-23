@@ -24,6 +24,65 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
 
+## Installation
+
+### Standard Installation (Recommended)
+
+1. **Navigate to your ComfyUI custom nodes directory:**
+   ```bash
+   cd ComfyUI/custom_nodes/
+   ```
+
+2. **Clone this repository:**
+   ```bash
+   git clone https://github.com/aTanguay/ComfyUI_Detonate.git
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   cd ComfyUI_Detonate
+   pip install -r requirements.txt
+   ```
+
+4. **Restart ComfyUI**
+
+The nodes will appear in the **Add Node → detonate/** category.
+
+### Requirements
+
+ComfyUI_Detonate requires the following Python packages:
+
+- **torch** >= 2.0.0 (usually already installed with ComfyUI)
+- **numpy** >= 1.23.5, < 2.0.0 (IMPORTANT: Must be < 2.0 for ComfyUI compatibility)
+- **pillow** >= 9.0.0, < 11.0.0 (IMPORTANT: Must be < 11.0 for gradio compatibility)
+- **opencv-python** >= 4.5.0 (for advanced image processing)
+- **OpenImageIO** >= 2.4.0 (optional, for multi-channel EXR support)
+
+**⚠️ Windows Users:** The version constraints on numpy (<2.0) and pillow (<11.0) are critical for ComfyUI compatibility. Do not remove these constraints.
+
+### Manual Installation
+
+If you prefer not to use git:
+
+1. Download the repository as a ZIP file
+2. Extract to `ComfyUI/custom_nodes/ComfyUI_Detonate/`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Restart ComfyUI
+
+### Troubleshooting
+
+**Nodes not appearing?**
+- Check the ComfyUI console for error messages
+- Ensure all dependencies are installed: `pip list | grep -E "torch|numpy|pillow|opencv"`
+- Try reinstalling: `pip install -r requirements.txt --force-reinstall`
+
+**Import errors on Windows?**
+- Verify numpy version is < 2.0: `pip show numpy`
+- Verify pillow version is < 11.0: `pip show pillow`
+- If needed, downgrade: `pip install "numpy<2.0" "pillow<11.0"`
+
+---
+
 ## 🎉 Version 0.9.0 - Bridge Tools: GenAI ↔ Compositing! 🌉
 
 **Unique tools bridging traditional compositing and generative AI workflows!**
