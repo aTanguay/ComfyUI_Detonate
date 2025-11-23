@@ -58,6 +58,24 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ---
 
+## Installation
+
+1. Clone into your ComfyUI `custom_nodes` directory:
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/aTanguay/ComfyUI_Detonate.git
+```
+
+2. Install dependencies:
+```bash
+cd ComfyUI_Detonate
+pip install -r requirements.txt
+```
+
+3. Restart ComfyUI
+
+---
+
 ## 🎉 Version 0.7.0 - Tier 5: Interactive Masking! 🔥
 
 **MAJOR FEATURE: Professional Rotoscoping Tools + Phase 1.5 Enhancements!**
@@ -460,21 +478,6 @@ Essential greenscreen and brightness keying for VFX compositing!
 
 ---
 
-## Installation
-
-1. Clone into your ComfyUI `custom_nodes` directory:
-```bash
-cd ComfyUI/custom_nodes
-git clone https://github.com/aTanguay/ComfyUI_Detonate.git
-```
-
-2. Install dependencies:
-```bash
-cd ComfyUI_Detonate
-pip install -r requirements.txt
-```
-
-3. Restart ComfyUI
 
 ## Usage
 
