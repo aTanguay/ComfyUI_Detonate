@@ -70,7 +70,7 @@ These nodes adjust colors, brightness, contrast, and overall image tone. Essenti
 | Node | Complexity | Status | Description |
 |------|-----------|--------|-------------|
 | **[Grade](color/grade.md)** | ⭐⭐⭐ | ✅ | Professional color grading (Lift/Gamma/Gain) |
-| **ColorCorrect** | ⭐⭐ | 📝 | Quick color adjustments (saturation, contrast, gamma) |
+| **[ColorCorrect](color/colorcorrect.md)** | ⭐⭐ | ✅ | Quick color adjustments (saturation, contrast, gamma, hue shift) |
 | **Clamp** | ⭐ | 📝 | Limit pixel values to a range (prevent out-of-range values) |
 | **Invert** | ⭐ | 📝 | Invert colors (negative image) |
 | **HSVAdjust** | ⭐⭐ | 📝 | Adjust Hue, Saturation, Value separately |
@@ -101,7 +101,7 @@ These nodes move, rotate, scale, and warp images. Essential for positioning elem
 
 | Node | Complexity | Status | Description |
 |------|-----------|--------|-------------|
-| **Transform** | ⭐⭐ | 📝 | Move, rotate, scale, skew images |
+| **[Transform](transform/transform.md)** | ⭐⭐ | ✅ | Move, rotate, scale, skew images |
 | **CornerPin** | ⭐⭐⭐ | 📝 | 4-point perspective warp (screen replacement) |
 | **[DisplacementMap](transforms/displacementmap.md)** | ⭐⭐⭐ | 📝 | Distort with displacement maps (heat waves, ripples) |
 | **[GridWarp](transforms/gridwarp.md)** | ⭐⭐⭐ | 📝 | Mesh-based warping (manual control grid) |
@@ -116,7 +116,7 @@ These nodes modify image clarity, add glows, detect edges, and create various fi
 
 | Node | Complexity | Status | Description |
 |------|-----------|--------|-------------|
-| **Blur** | ⭐ | 📝 | Gaussian blur (soften images) |
+| **[Blur](filter/blur.md)** | ⭐ | ✅ | Gaussian blur with X/Y controls (soften images) |
 | **Sharpen** | ⭐ | 📝 | Increase image sharpness/detail |
 | **EdgeDetect** | ⭐⭐ | 📝 | Find edges in images (Sobel, Canny) |
 | **Median** | ⭐⭐ | 📝 | Remove noise while preserving edges |
@@ -149,9 +149,9 @@ These nodes manipulate alpha channels (transparency) and refine mattes from keyi
 
 | Node | Complexity | Status | Description |
 |------|-----------|--------|-------------|
-| **Premultiply** | ⭐⭐ | 📝 | Multiply RGB by alpha (prepare for compositing) |
-| **Unpremultiply** | ⭐⭐ | 📝 | Divide RGB by alpha (prepare for color correction) |
-| **[MatteControl](matte/mattecontrol.md)** | ⭐⭐⭐ | 📝 | All-in-one matte refinement (erode, blur, gamma, levels) |
+| **[Premultiply](channel/premultiply.md#premultiply-node)** | ⭐⭐ | ✅ | Multiply RGB by alpha (prepare for compositing) |
+| **[Unpremultiply](channel/premultiply.md#unpremultiply-node)** | ⭐⭐ | ✅ | Divide RGB by alpha (prepare for color correction) |
+| **[MatteControl](matte/mattecontrol.md)** | ⭐⭐⭐ | ✅ | All-in-one matte refinement (erode, blur, gamma, levels) |
 | **Erode** | ⭐⭐ | 📝 | Shrink/expand mattes (edge control) |
 
 **When to use Matte nodes:** Refining keying results, fixing edge fringing, preparing for compositing.
@@ -252,19 +252,25 @@ Professional techniques:
 - 📝 **Coming Soon** - Documentation in progress
 - ⚠️ **Experimental** - Node is experimental, docs may change
 
-**Current Status:** 4 of 45 nodes documented (9%)
+**Current Status:** 10 of 45 nodes documented (22%)
 
 **Completed:**
 - [Merge](compositing/merge.md) (Compositing)
 - [Grade](color/grade.md) (Color)
+- [ColorCorrect](color/colorcorrect.md) (Color)
 - [ChromaKeyer](keying/chromakeyer.md) (Keying)
+- [Transform](transform/transform.md) (Transform)
+- [Blur](filter/blur.md) (Filter)
 - [Noise](generators/noise.md) (Generator)
+- [MatteControl](matte/mattecontrol.md) (Matte)
+- [Premultiply](channel/premultiply.md) (Channel)
+- [Unpremultiply](channel/premultiply.md) (Channel)
 
 **Next Priority:**
-- Transform (Transform)
-- Blur (Filter)
-- MatteControl (Matte)
-- Premultiply/Unpremultiply (Matte)
+- Constant (Generator)
+- Invert (Color)
+- Clamp (Color)
+- Saturation (Color)
 
 ---
 
