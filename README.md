@@ -8,7 +8,8 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ## Features
 
-- **Interactive rotoscoping** with professional Bezier spline tools 🔥 **NEW!**
+- **Professional keying tools** - ChromaKeyer & LumaKeyer for greenscreen workflows 🔥 **NEW!**
+- **Interactive rotoscoping** with professional Bezier spline tools
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
 - **Multi-channel EXR support** for CG render passes
@@ -21,6 +22,41 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
+
+## 🎉 Version 0.8.0 - Tier 6: Professional Keying! 🎬
+
+**Essential greenscreen and brightness keying tools!**
+
+### Keying Toolkit
+
+**3 professional keying nodes** for VFX compositing:
+
+1. **ChromaKeyer** ⭐⭐⭐ - Professional greenscreen/bluescreen keying
+   - **Screen color presets** - Green, Blue, Custom RGB
+   - **Color difference algorithm** - Industry-standard keying
+   - **Threshold & tolerance controls** - Precise key tuning
+   - **Softness control** - Smooth edge transitions
+   - **Spill suppression** - Remove green/blue color cast from edges
+   - **Multiple output modes** - Alpha, Foreground, Raw Key, Despilled
+   - Essential for greenscreen removal and virtual production
+
+2. **LumaKeyer** ⭐⭐ - Advanced brightness-based keying
+   - **Multiple luma modes** - Rec.709, Average, Max, Min
+   - **Range controls** - Min/Max brightness selection
+   - **Soft edges** - Smooth key transitions
+   - **Invert option** - Key dark or bright areas
+   - **Output modes** - Alpha or Foreground
+   - Perfect for sky replacement, highlight/shadow isolation
+
+3. **LumaKeyer Simple** ⭐ - Quick single-threshold luma keyer
+   - **Single threshold** - Fast brightness keying
+   - **Tolerance control** - Adjust key range
+   - **Brighter/Darker modes** - Quick selection
+   - Ideal for simple sky replacement or quick selections
+
+**Total node count: 39 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5 + 3 Tier 6)
+
+---
 
 ## 🎉 Version 0.7.0 - Tier 5: Interactive Masking! 🔥
 
@@ -380,6 +416,47 @@ The #1 requested feature by compositors! Professional rotoscoping tools with int
 - **Artistic control** - Multiple feather falloff curves (Linear/Smooth/Gaussian)
 - Distance field feathering produces superior soft edges vs. blur-based approaches
 - Essential workflow tool for isolating subjects in composite shots
+
+---
+
+### ✅ Tier 6: Professional Keying (3 nodes) - COMPLETE! 🎬
+Essential greenscreen and brightness keying for VFX compositing!
+
+#### Chroma Keying
+- **ChromaKeyer** ⭐⭐⭐ - Professional greenscreen/bluescreen keying
+  - **Screen color selection** - Green, Blue, Custom RGB
+  - **Color difference algorithm** - Industry-standard keying method
+  - **Threshold control** - Set initial key range (0-1)
+  - **Tolerance control** - Expand key range for better coverage
+  - **Softness control** - Smooth edge transitions
+  - **Spill suppression** - Remove green/blue color cast from edges (0-1)
+  - **Multiple output modes** - Alpha, Foreground, Raw Key, Despilled
+  - Based on Nuke IBKColour and Keylight algorithms
+  - Essential for greenscreen removal, virtual production, product photography
+
+#### Luminance Keying
+- **LumaKeyer** ⭐⭐ - Advanced brightness-based keying
+  - **Multiple luma modes** - Rec.709, Average, Max, Min
+  - **Range controls** - Min/Max brightness selection (0-1)
+  - **Soft edges** - Smooth key transitions
+  - **Invert option** - Key dark or bright areas
+  - **Output modes** - Alpha or Foreground
+  - Perfect for sky replacement, highlight/shadow isolation
+  - Day-for-night effects, brightness-based masking
+
+- **LumaKeyer Simple** ⭐ - Quick single-threshold luma keyer
+  - **Single threshold** - Fast brightness keying (0-1)
+  - **Tolerance control** - Adjust key range
+  - **Brighter/Darker modes** - Quick selection
+  - Ideal for simple sky replacement or quick selections
+  - Streamlined workflow for common keying tasks
+
+**Why professional keying matters:**
+- Completes the core compositor toolkit (merge + grade + key + mask)
+- ChromaKeyer handles 90% of greenscreen workflows
+- LumaKeyer essential for sky replacement and brightness selections
+- Industry-standard algorithms from Nuke and Fusion
+- Multiple output modes for flexible compositing pipelines
 
 ---
 
