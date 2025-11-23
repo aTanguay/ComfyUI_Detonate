@@ -8,7 +8,8 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 
 ## Features
 
-- **Professional keying tools** - ChromaKeyer & LumaKeyer for greenscreen workflows 🔥 **NEW!**
+- **Bridge tools for GenAI workflows** - Edge defringing, displacement mapping, mesh warping 🔥 **NEW v0.9.0!**
+- **Professional keying tools** - ChromaKeyer & LumaKeyer for greenscreen workflows
 - **Interactive rotoscoping** with professional Bezier spline tools
 - **Professional-grade algorithms** based on Nuke and Fusion
 - **Full float image support** (0-∞ range, not limited to 0-1)
@@ -22,6 +23,48 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
 - **GPU-accelerated** operations using PyTorch
 - **Batch processing** support for efficient workflows
 - **Industry-standard** blend modes and color operations
+
+## 🎉 Version 0.9.0 - Bridge Tools: GenAI ↔ Compositing! 🌉
+
+**Unique tools bridging traditional compositing and generative AI workflows!**
+
+### What Makes These Special?
+
+These nodes fill critical gaps in the ComfyUI ecosystem - they either don't exist elsewhere or lack professional-grade implementations. Built specifically to help compositors work with AI-generated images.
+
+### Bridge Tools (3 Unique Nodes)
+
+**1. Edge Defringe (AlphaPremultFix)** ⭐⭐⭐ - Fix AI image edge artifacts
+   - **Erode Matte technique** - Shrink alpha, dilate color to fill edge
+   - **Color suppression** - Remove greenscreen spill and color contamination
+   - **Premult fix** - Remove dark/bright halos from premult errors
+   - **Problem color selection** - Green, Blue, Red, Custom, or Auto-detect
+   - **Multiple modes** - Erode Matte, Color Suppress, Premult Fix, or All
+   - Essential for cleaning up AI inpainting, background removal, and greenscreen artifacts
+   - **UNIQUE:** Nothing else in ComfyUI handles edge defringing this comprehensively
+
+**2. Displacement Map** ⭐⭐⭐ - Professional IDistort-style warping
+   - **UV displacement** - R=X, G=Y vector field warping
+   - **Adjustable scale** - Independent X/Y displacement strength
+   - **Edge modes** - Clamp, Wrap, or Black
+   - **Bilinear interpolation** - Smooth, high-quality results
+   - **Center-neutral option** - 0.5 = no displacement (standard)
+   - **Alpha as Y option** - Use alpha channel for Y displacement
+   - Perfect for heat distortion, refraction, lens correction, creative warping
+   - **UNIQUE:** No professional displacement mapping exists in ComfyUI
+
+**3. GridWarp** ⭐⭐ - Mesh-based image warping
+   - **Control grid** - 2×2 to 32×32 mesh resolution
+   - **Piecewise affine** - Smooth quad-based warping
+   - **JSON grid data** - Persistent grid point offsets
+   - **Strength control** - Warp intensity multiplier
+   - **Edge modes** - Clamp or Black
+   - Ideal for perspective correction, lens distortion, creative warping, building straightening
+   - **UNIQUE:** Mesh-based warping doesn't exist in ComfyUI
+
+**Total node count: 42 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5 + 3 Tier 6 + 3 Bridge Tools)
+
+---
 
 ## 🎉 Version 0.8.0 - Tier 6: Professional Keying! 🎬
 
@@ -55,6 +98,7 @@ ComfyUI_Detonate provides industry-standard compositing tools familiar to VFX pr
    - Ideal for simple sky replacement or quick selections
 
 **Total node count: 39 nodes** (9 Tier 1 + 8 Tier 2 + 1 Cryptomatte + 8 Tier 3 + 8 Tier 4 + 2 Tier 5 + 3 Tier 6)
+*Bridge tools released in v0.9.0*
 
 ---
 
