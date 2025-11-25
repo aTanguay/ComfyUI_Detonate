@@ -14,15 +14,18 @@ https://learn.foundry.com/nuke/content/comp_environment/cryptomatte/
 import torch
 import numpy as np
 import os
-import sys
 import struct
 import json
 import re
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-
-from utils.path_utils import get_exr_files, resolve_input_path
+# Import utilities using relative import (works when loaded as ComfyUI package)
+try:
+    from ...utils.path_utils import get_exr_files, resolve_input_path
+except ImportError:
+    # Fallback for direct execution or testing
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+    from utils.path_utils import get_exr_files, resolve_input_path
 
 try:
     import OpenImageIO as oiio
