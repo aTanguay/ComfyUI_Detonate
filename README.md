@@ -20,11 +20,14 @@ ComfyUI_Detonate provides **45 professional compositing nodes** familiar to VFX 
 - **AI inpainting helpers** - TriMap Generator, Seam Blender for perfect AI integration
 - **Bridge tools for GenAI workflows** - Edge defringing, displacement mapping, mesh warping
 - **Professional keying tools** - ChromaKeyer & LumaKeyer for greenscreen workflows
-- **Interactive rotoscoping** with professional Bezier spline tools
+- **Mask refinement tools** - Professional edge smoothing and feathering (see [masking workflow guide](DOCS/MASKING_WORKFLOW.md))
 - **Professional-grade algorithms** based on Nuke and Fusion
+
+> **Note:** RotoBezier is experimental only - use ComfyUI's MaskEditor + Mask Smoother for practical masking workflows. See [deprecation notice](nodes/matte/ROTOBEZIER_DEPRECATED.md) for details.
 - **Full float image support** (0-∞ range, not limited to 0-1)
-- **Multi-channel EXR support** for CG render passes
-- **Cryptomatte ID mattes** for object/material extraction
+- **User-friendly EXR loading** - File selector dropdown for easy EXR file access (see [EXR workflow guide](DOCS/EXR_WORKFLOW.md))
+- **Multi-channel EXR support** for CG render passes with AOV selection
+- **Cryptomatte ID mattes** for object/material extraction with dropdown file selection
 - **Depth-based compositing** (ZDefocus, ZMerge) for CG workflows
 - **Visual effects** (Glow, Defocus, Sharpen) for professional finishing
 - **Professional color grading** with Bezier curves

@@ -13,6 +13,12 @@ https://openimageio.readthedocs.io/en/latest/pythonbindings.html
 import torch
 import numpy as np
 import os
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from utils.path_utils import get_exr_files, resolve_input_path
 
 try:
     import OpenImageIO as oiio
@@ -42,20 +48,24 @@ class DetonateLoadEXR:
 
     @classmethod
     def INPUT_TYPES(cls):
+        exr_files = get_exr_files(__file__)
+
         return {
             "required": {
-                "exr_path": ("STRING", {
-                    "default": "",
-                    "multiline": False,
+                "exr_file": (exr_files, {
+                    "default": exr_files[0] if exr_files else "",
+                    "tooltip": "Select EXR file from ComfyUI input directory"
                 }),
                 "layer": ("STRING", {
                     "default": "RGBA",
                     "multiline": False,
+                    "tooltip": "Layer name (RGBA, RGB, diffuse, specular, etc.)"
                 }),
             },
             "optional": {
                 "list_layers": ("BOOLEAN", {
                     "default": False,
+                    "tooltip": "Print available layers to console"
                 }),
             },
         }
@@ -66,7 +76,7 @@ class DetonateLoadEXR:
 
     def load_exr(
         self,
-        exr_path: str,
+        exr_file: str,
         layer: str = "RGBA",
         list_layers: bool = False
     ) -> tuple:
@@ -74,7 +84,7 @@ class DetonateLoadEXR:
         Load EXR file with specific layer/pass.
 
         Args:
-            exr_path: Path to EXR file
+            exr_file: Relative path to EXR file (from ComfyUI input directory)
             layer: Layer name to load (e.g., "RGBA", "diffuse", "specular")
                    For multi-layer EXRs, use names like "beauty.RGBA" or "diffuse.RGB"
             list_layers: If true, print available layers to console
@@ -94,8 +104,8 @@ class DetonateLoadEXR:
         if not OIIO_AVAILABLE:
             raise RuntimeError("OpenImageIO is required for EXR loading. Install with: pip install OpenImageIO")
 
-        if not os.path.exists(exr_path):
-            raise FileNotFoundError(f"EXR file not found: {exr_path}")
+        # Resolve full path from relative path
+        exr_path = resolve_input_path(__file__, exr_file)
 
         # Open EXR file
         inp = oiio.ImageInput.open(exr_path)

@@ -331,14 +331,32 @@ When implementing nodes:
 ## Notes for Claude
 
 - Always check [TASKS.md](TASKS.md) and update checkboxes as you complete work
-- Reference [NODE_PRIORITIES.md](NODE_PRIORITIES.md) for node complexity estimates
+- Reference [DOCS/NODE_PRIORITIES.md](DOCS/NODE_PRIORITIES.md) for node complexity estimates
 - Follow the architecture defined in [PLANNING.md](PLANNING.md)
 - Write clean, modular, well-documented code
 - Test thoroughly before marking tasks complete
 - Ask for clarification when Nuke/Fusion behavior is ambiguous
 - Keep the user informed of progress and any blockers
 
+## Project Status & Decisions
+
+**RotoBezier Status:** DEPRECATED / EXPERIMENTAL ONLY
+- Interactive widget doesn't work with ComfyUI's LiteGraph system
+- JSON editing is impractical for users
+- Recommended alternative: ComfyUI MaskEditor + Mask Smoother (Detonate)
+- See [nodes/matte/ROTOBEZIER_DEPRECATED.md](nodes/matte/ROTOBEZIER_DEPRECATED.md) and [DOCS/MASKING_WORKFLOW.md](DOCS/MASKING_WORKFLOW.md)
+
+**Focus Strategy:**
+- Keep building professional compositing nodes (Merge, Grade, Keying, etc.)
+- These are unique and valuable - no good alternatives exist
+- Don't duplicate basic operations well-covered by ComfyUI or WAS Suite
+- See [DOCS/ECOSYSTEM_GAP_ANALYSIS.md](DOCS/ECOSYSTEM_GAP_ANALYSIS.md) for details
+
+**WEB_DIRECTORY Fix:**
+- Added `WEB_DIRECTORY = "./web"` to `__init__.py` (was missing)
+- This enables JavaScript widgets to load properly
+
 ---
 
-**Last Updated:** 2025-01-21
-**Current Phase:** Planning Complete, Ready for Phase 1 Implementation
+**Last Updated:** 2025-01-24
+**Current Phase:** Core nodes implemented, focusing on unique professional features

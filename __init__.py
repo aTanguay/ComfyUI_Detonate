@@ -272,6 +272,15 @@ try:
 except ImportError as e:
     print(f"Warning: Could not load RotoBezier nodes: {e}")
 
+try:
+    from .nodes.matte.mask_smoother import DetonateMaskSmoother, DetonateMaskFromColor
+    NODE_CLASS_MAPPINGS["DetonateMaskSmoother"] = DetonateMaskSmoother
+    NODE_CLASS_MAPPINGS["DetonateMaskFromColor"] = DetonateMaskFromColor
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateMaskSmoother"] = "Mask Smoother (Detonate)"
+    NODE_DISPLAY_NAME_MAPPINGS["DetonateMaskFromColor"] = "Mask From Color (Detonate)"
+except ImportError as e:
+    print(f"Warning: Could not load MaskSmoother nodes: {e}")
+
 
 # Tier 6 Nodes - Professional Keying ✓
 try:
@@ -328,6 +337,9 @@ try:
 except ImportError as e:
     print(f"Warning: Could not load SeamBlender node: {e}")
 
+
+# Web directory for custom JavaScript widgets
+WEB_DIRECTORY = "./web"
 
 # Export for ComfyUI
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

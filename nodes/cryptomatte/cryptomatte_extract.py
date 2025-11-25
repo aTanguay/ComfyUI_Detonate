@@ -14,9 +14,15 @@ https://learn.foundry.com/nuke/content/comp_environment/cryptomatte/
 import torch
 import numpy as np
 import os
+import sys
 import struct
 import json
 import re
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from utils.path_utils import get_exr_files, resolve_input_path
 
 try:
     import OpenImageIO as oiio
@@ -46,29 +52,38 @@ class DetonateCryptomatteExtract:
     - Multi-object selection with proper anti-aliasing
 
     Requires: OpenImageIO, mmh3 (MurmurHash3)
+
+    Usage:
+    - Option 1: Select EXR file from dropdown (files in ComfyUI input directory)
+    - Option 2: Connect IMAGE output from Load EXR node (uses stored path)
     """
 
     CATEGORY = "detonate/cryptomatte"
 
     @classmethod
     def INPUT_TYPES(cls):
+        exr_files = get_exr_files(__file__)
+
         return {
             "required": {
-                "exr_path": ("STRING", {
-                    "default": "",
-                    "multiline": False,
+                "exr_file": (exr_files, {
+                    "default": exr_files[0] if exr_files else "",
+                    "tooltip": "Select Cryptomatte EXR file from ComfyUI input directory"
                 }),
                 "cryptomatte_layer": (["CryptoObject", "CryptoMaterial", "CryptoAsset"], {
                     "default": "CryptoObject",
+                    "tooltip": "Which Cryptomatte layer to extract from"
                 }),
                 "matte_list": ("STRING", {
                     "default": "",
                     "multiline": True,
+                    "tooltip": "Comma-separated object/material names to extract (e.g., 'sphere_001, cube_002')"
                 }),
             },
             "optional": {
                 "list_objects": ("BOOLEAN", {
                     "default": False,
+                    "tooltip": "Print available objects to console"
                 }),
             },
         }
@@ -79,7 +94,7 @@ class DetonateCryptomatteExtract:
 
     def extract_matte(
         self,
-        exr_path: str,
+        exr_file: str,
         cryptomatte_layer: str = "CryptoObject",
         matte_list: str = "",
         list_objects: bool = False
@@ -88,7 +103,7 @@ class DetonateCryptomatteExtract:
         Extract Cryptomatte ID matte from EXR file.
 
         Args:
-            exr_path: Path to Cryptomatte EXR file
+            exr_file: Relative path to Cryptomatte EXR file (from ComfyUI input directory)
             cryptomatte_layer: Which Cryptomatte layer to use (CryptoObject, CryptoMaterial, CryptoAsset)
             matte_list: Comma-separated list of object/material names to extract
                        (e.g., "sphere_001, cube_002, ground_plane")
@@ -111,8 +126,8 @@ class DetonateCryptomatteExtract:
         if not MMH3_AVAILABLE:
             raise RuntimeError("mmh3 is required for Cryptomatte. Install with: pip install mmh3")
 
-        if not os.path.exists(exr_path):
-            raise FileNotFoundError(f"EXR file not found: {exr_path}")
+        # Resolve full path from relative path
+        exr_path = resolve_input_path(__file__, exr_file)
 
         # Open EXR file
         inp = oiio.ImageInput.open(exr_path)
