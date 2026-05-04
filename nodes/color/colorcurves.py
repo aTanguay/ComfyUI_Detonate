@@ -76,7 +76,7 @@ class DetonateColorCurves:
                     "default": "0,0;1,1",
                     "multiline": False,
                 }),
-                "preset": (["none"] + list(PRESETS.keys()), {
+                "preset": (["none"] + list(cls.PRESETS.keys()), {
                     "default": "none",
                 }),
                 "clamp_output": ("BOOLEAN", {
